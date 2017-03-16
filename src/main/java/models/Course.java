@@ -3,8 +3,7 @@ package main.java.models;
 import java.sql.*;
 
 public class Course {
-		public Course()
-		{}
+		public Course(){}
 		
 		public String getCourse(String cname, String dname, Statement stmt)
 		{
