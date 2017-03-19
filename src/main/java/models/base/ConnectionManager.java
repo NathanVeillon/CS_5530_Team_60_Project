@@ -39,16 +39,19 @@ public final class ConnectionManager {
 		}
 
 		initialized = true;
-
 	}
 
-	public static void closeConnection() throws Exception{
+	public static void closeConnection(){
 		if(!isInitialized()){
 			return;
 		}
 
-		con.close();
-		initialized = false;
+		try {
+			con.close();
+			initialized = false;
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	public static PreparedStatement prepareStatement(String str) throws SQLException {

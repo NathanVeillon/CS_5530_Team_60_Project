@@ -1,8 +1,13 @@
 package main.java.models.base;
 
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class BaseObject {
 
@@ -10,7 +15,11 @@ public abstract class BaseObject {
 	public abstract String getTableName();
 	public abstract List<Attribute> getAttributes();
 
+	public HashMap<String, Attribute> ModifiedAttributes = new HashMap<>();
+
+
 	public boolean IsCreating = true;
+	public boolean IsDeleted = false;
 
 	public BaseObject(){
 
@@ -58,6 +67,43 @@ public abstract class BaseObject {
 		return null;
 	}
 
+	/**
+	 * Returns The Primary Keys By An Hash Map
+	 * Where The Key Is The Field Name, And The Value Is The Value OF The Field
+	 * [
+	 *  	PK_field1 => 12345
+	 *  	PK_field2 => 'Hello World'
+	 * ]
+	 *
+	 * @return PK String
+	 */
+	public HashMap<String, Object> getPrimaryKeys(){
+		HashMap<String, Object> pks = new HashMap<String, Object>();
+
+		for (Attribute attribute: getAttributes()) {
+			if(attribute.IsPrimaryKey){
+				try {
+					System.out.println(getField(attribute.JavaFieldName));
+					pks.put(attribute.JavaFieldName, getField(attribute.JavaFieldName));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return pks;
+	}
+	
+	public Attribute getNullPrimaryKey(){
+		for (Attribute attr: getAttributes()) {
+			if(attr.IsPrimaryKey && this.IsCreating && !this.ModifiedAttributes.containsKey(attr.JavaFieldName)){
+				return getRelatedAttr(attr.JavaFieldName);
+			}
+		}
+
+		return null;
+	}
+
 	public Object getField(String fieldName) throws NoSuchFieldException, IllegalAccessException {
 		return this.getClass().getField(fieldName).get(this);
 	}
@@ -68,14 +114,13 @@ public abstract class BaseObject {
 			throw new NoSuchFieldException("No Field Named "+fieldName);
 		}
 
+		ModifiedAttributes.put(fieldName, attr);
+
 		if(attr.IsPrimaryKey && value != getField(fieldName)){
 			IsCreating = true;
 		}
 
 		this.getClass().getField(fieldName).set(this, value);
-
-
-
 	}
 
 	public void save() throws Exception {
@@ -116,13 +161,33 @@ public abstract class BaseObject {
 			i++;
 		}
 
-		stmnt.execute();
+		stmnt.executeUpdate();
+
+		// To Deal With AutoIncrement Field.
+		Attribute nullAttr = getNullPrimaryKey();
+		if (nullAttr == null){
+			return;
+		}
+
+		ResultSet resultSet = stmnt.getGeneratedKeys();
+		if(resultSet == null){
+			return;
+		}
+
+		resultSet.first();
+		setField(nullAttr.JavaFieldName, resultSet.getObject(1));
 		IsCreating = false;
 	}
+
+
 
 	public void update() throws Exception {
 		if(!ConnectionManager.inTransaction()){
 			throw new Exception("Cannot Update Outside A Transaction");
+		}
+
+		if(IsDeleted){
+			throw new Exception("Cannot Save Object As It Is Deleted");
 		}
 
 		String setStr = "SET ";
@@ -138,12 +203,11 @@ public abstract class BaseObject {
 				if(whereStr.length() != 6){
 					whereStr += ", ";
 				}
-				whereStr += attribute.DatabaseName + " =  ?";// Using Param To have safe updates
+				whereStr += attribute.DatabaseName + " = ?";// Using Param To have safe updates
 			}
 		}
 
 		String str = "UPDATE "+getTableName()+" "+setStr+" "+whereStr+";";
-		System.out.println(str);
 		PreparedStatement stmnt = ConnectionManager.prepareStatement(str);
 
 		int i = 1;
@@ -177,17 +241,17 @@ public abstract class BaseObject {
 					whereStr += ", ";
 				}
 
-				whereStr += attribute.DatabaseName + " =  ?";// Using Param To have safe updates
+				whereStr += attribute.DatabaseName + " = ?";// Using Param To have safe updates
 			}
 		}
 
-		String str = "DELETE FOR "+getTableName()+" "+whereStr+" LIMIT 1;";
+		String str = "DELETE FROM "+getTableName()+" "+whereStr+" LIMIT 1;";
 		PreparedStatement stmnt = ConnectionManager.prepareStatement(str);
 
 		int i = 1;
 		for (Attribute attribute: attributes) {
 			if(attribute.IsPrimaryKey){
-				stmnt.setObject(i, getField(attribute.JavaFieldName), attribute.DatabaseType);
+				stmnt.setObject(i, getField(attribute.JavaFieldName));
 				i++;
 			}
 		}

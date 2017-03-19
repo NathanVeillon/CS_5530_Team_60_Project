@@ -10,28 +10,32 @@ public class baseObjectExample {
 	 */
 	public static void main(String[] args) {
 		try{
-			ConnectionManager.init("5530u60","INSERT PASSWORD", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
+			//TODO:: Get Connection Info From Config File To Allow For Password Security
+			ConnectionManager.init("5530u60","ENTER PASSWORD", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
 
 			ConnectionManager.startTransaction();
 
-			// ToDo: Make Objects Get Object After Creation To Fill In The Auto Generated Fields
-			//	Will Have To Implement Queries To Get This To Work
 			ExampleObject a = new ExampleObject();
 			a.setField("Name", "Hello");
 			a.save();
 
 			ExampleObject b = new ExampleObject();
-//			b.setField("Id", 2);
 			b.setField("Name", "GoodBye");
 			b.save();
 
+			System.out.println("Id Of B: "+b.Id);
 
+			b.setField("Name", "Why?");
+			b.save();
 
-//			b.setField("Name", "Why?");
-//			b.save();
+			a.delete();
+
+			ExampleObject c = new ExampleObject();
+			c.setField("Name","New Entry");
+
+			c.save();
 
 			ConnectionManager.commit();
-			ConnectionManager.closeConnection();
 		}
 		catch (Exception e)
 		{
@@ -39,6 +43,9 @@ public class baseObjectExample {
 			e.printStackTrace();
 			
 		}
+
+
+		ConnectionManager.closeConnection();
 	}
 
 }
