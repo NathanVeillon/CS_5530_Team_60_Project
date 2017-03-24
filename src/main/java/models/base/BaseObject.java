@@ -1,9 +1,6 @@
 package main.java.models.base;
 
-import java.sql.JDBCType;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.sql.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +8,6 @@ import java.util.Map;
 
 public abstract class BaseObject {
 
-	public static Class<? extends BaseObjectMap> ObjectMapClass;
 	public abstract String getTableName();
 	public abstract List<Attribute> getAttributes();
 
@@ -22,12 +18,6 @@ public abstract class BaseObject {
 	public boolean IsDeleted = false;
 
 	public BaseObject(){
-
-//		for (Attribute attr: getAttributes()) {
-//			if(!isValidField(attr.JavaFieldName, attr.JavaType)){
-//				throw new OrmException("The Object Does Not Have the Same Field "+attr.JavaFieldName+" With The Same Type ("+attr.JavaType+") As The Object Map.");
-//			}
-//		}
 	}
 
 	public BaseObject(BaseObject o) {
@@ -175,7 +165,7 @@ public abstract class BaseObject {
 		}
 
 		resultSet.first();
-		setField(nullAttr.JavaFieldName, resultSet.getObject(1));
+		setField(nullAttr.JavaFieldName, Integer.parseInt(resultSet.getObject(1).toString()));
 		IsCreating = false;
 	}
 

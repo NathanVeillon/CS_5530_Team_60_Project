@@ -12,7 +12,7 @@ import java.util.List;
 public class ExampleObject extends BaseObject {
 
 	public final static List<Attribute> Attributes = asList(
-			new Attribute("Id", Long.class, "id", JDBCType.INTEGER, true),
+			new Attribute("Id", Integer.class, "id", JDBCType.INTEGER, true),
 			new Attribute("Name", String.class, "name", JDBCType.VARCHAR, false)
 	);
 	public final static String TableName = "example_table";
@@ -27,6 +27,6 @@ public class ExampleObject extends BaseObject {
 		return TableName;
 	}
 
-	public Long Id;
+	public Integer Id;
 	public String Name;
 }

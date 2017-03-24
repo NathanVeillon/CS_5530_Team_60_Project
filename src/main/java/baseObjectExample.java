@@ -1,7 +1,12 @@
 package main.java;
 
 import main.java.models.ExampleObject;
+import main.java.models.ExampleObjectQuery;
+import main.java.models.base.BaseObject;
 import main.java.models.base.ConnectionManager;
+import main.java.models.base.ObjectCollection;
+
+import java.sql.PreparedStatement;
 
 public class baseObjectExample {
 
@@ -11,7 +16,7 @@ public class baseObjectExample {
 	public static void main(String[] args) {
 		try{
 			//TODO:: Get Connection Info From Config File To Allow For Password Security
-			ConnectionManager.init("5530u60","ENTER PASSWORD", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
+			ConnectionManager.init("5530u60","jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
 
 			ConnectionManager.startTransaction();
 
@@ -34,6 +39,16 @@ public class baseObjectExample {
 			c.setField("Name","New Entry");
 
 			c.save();
+
+			PreparedStatement stmnt = ConnectionManager.prepareStatement("SELECT * FROM "+ExampleObject.TableName+" WHERE name = ?;");
+			stmnt.setObject(1, "New Entry");
+
+			ExampleObjectQuery query = new ExampleObjectQuery();
+			ObjectCollection objects = query.getCollectionFromObjectResult(stmnt.executeQuery());
+
+			for(BaseObject object: objects){
+				System.out.println("Example Object, Id: "+object.getField("Id")+" | Name: "+ object.getField("Name"));
+			}
 
 			ConnectionManager.commit();
 		}
