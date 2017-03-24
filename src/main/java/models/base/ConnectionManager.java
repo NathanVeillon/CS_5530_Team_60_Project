@@ -29,7 +29,7 @@ public final class ConnectionManager {
 		Database = database;
 
 		try{
-			Class.forName ("com.mysql.jdbc.Driver").newInstance ();
+			Class.forName ("com.mysql.jdbc.Driver").newInstance();
 			con = DriverManager.getConnection (server+"/"+database, user, password);
 			con.setAutoCommit(false);
 		} catch(Exception e) {
