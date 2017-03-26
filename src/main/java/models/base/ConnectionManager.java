@@ -1,6 +1,7 @@
 package main.java.models.base;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Stack;
 
 /**
@@ -12,6 +13,8 @@ public final class ConnectionManager {
 	private static String Database;
 	private static boolean initialized = false;
 	private static Connection con;
+
+	private static ArrayList<PreparedStatement> OpenedStatements = new ArrayList<>();
 
 	private static Stack<Savepoint> savepoints = new Stack<>();
 
@@ -47,6 +50,18 @@ public final class ConnectionManager {
 		}
 
 		try {
+			for(PreparedStatement statement: OpenedStatements){
+				if(statement.isClosed())
+					continue;
+				statement.close();
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
+		OpenedStatements.clear();
+
+		try {
 			con.close();
 			initialized = false;
 		}catch (Exception e){
@@ -55,7 +70,9 @@ public final class ConnectionManager {
 	}
 
 	public static PreparedStatement prepareStatement(String str) throws SQLException {
-		return con.prepareStatement(str);
+		PreparedStatement statement = con.prepareStatement(str);
+		OpenedStatements.add(statement);
+		return statement;
 	}
 
 	public static boolean inTransaction(){
