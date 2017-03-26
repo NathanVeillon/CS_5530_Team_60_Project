@@ -107,7 +107,7 @@ public class User extends BaseObject {
 
 	public User setIsAdmin(boolean isAdmin) throws Exception {
 		int intAdmin = (isAdmin) ? 1 : 0;
-		setField("IsAdmin", isAdmin);
+		setField("IsAdmin", intAdmin);
 		return this;
 	}
 
