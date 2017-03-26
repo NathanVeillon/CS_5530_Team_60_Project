@@ -3,7 +3,7 @@ package main.java;
 import main.java.models.ExampleObject;
 import main.java.models.ExampleObjectQuery;
 import main.java.models.base.BaseObject;
-import main.java.models.base.ConnectionManager;
+import main.java.managers.ConnectionManager;
 import main.java.models.base.ObjectCollection;
 
 import java.sql.PreparedStatement;

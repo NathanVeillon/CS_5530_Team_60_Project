@@ -2,6 +2,7 @@ package main.java.models;
 
 import main.java.models.base.Attribute;
 import main.java.models.base.BaseObject;
+import main.java.models.base.ObjectCollection;
 
 import java.util.List;
 
@@ -44,58 +45,70 @@ public class User extends BaseObject {
 	public String PhoneNumber;
 	public Integer IsAdmin;
 
+	public ObjectCollection OwnedTemporaryHousing;
 
 	public Integer getId() throws Exception {
-		return (Integer) this.getField("Integer");
+		return (Integer) this.getField("Id");
+	}
+
+	public User setId(Integer id) throws Exception {
+		setField("Id", id);
+		return this;
 	}
 
 	public String getLogin() throws Exception {
 		return (String) this.getField("Login");
 	}
 
-	public void setLogin(String login) throws Exception {
+	public User setLogin(String login) throws Exception {
 		setField("Login", login);
+		return this;
 	}
 
 	public String getPassword() throws Exception {
-		return "**********";
+		return (String) this.getField("Password");
 	}
 
-	public void setPassword(String password) throws Exception {
+	public User setPassword(String password) throws Exception {
 		setField("Password", password);
+		return this;
 	}
 
 	public String getName() throws Exception {
 		return (String) this.getField("Name");
 	}
 
-	public void setName(String name) throws Exception {
+	public User setName(String name) throws Exception {
 		setField("Name", name);
+		return this;
 	}
 
 	public String getAddress() throws Exception {
 		return (String) this.getField("Address");
 	}
 
-	public void setAddress(String address) throws Exception {
+	public User setAddress(String address) throws Exception {
 		setField("Address", address);
+		return this;
 	}
 
 	public String getPhoneNumber() throws Exception {
 		return (String) this.getField("PhoneNumber");
 	}
 
-	public void setPhoneNumber(String phoneNumber) throws Exception {
+	public User setPhoneNumber(String phoneNumber) throws Exception {
 		setField("PhoneNumber", phoneNumber);
+		return this;
 	}
 
 	public boolean getIsAdmin() throws Exception {
-		return (boolean) this.getField("IsAdmin");
+		return ((Integer)this.getField("IsAdmin") != 0);
 	}
 
-	public void setIsAdmin(Boolean isAdmin) throws Exception {
-		int admin = (isAdmin) ? 1 : 0;
-		setField("IsAdmin", admin);
+	public User setIsAdmin(boolean isAdmin) throws Exception {
+		int intAdmin = (isAdmin) ? 1 : 0;
+		setField("IsAdmin", isAdmin);
+		return this;
 	}
 
 }

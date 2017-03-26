@@ -1,5 +1,7 @@
 package main.java.models.base;
 
+import main.java.managers.ConnectionManager;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -142,6 +144,9 @@ public abstract class BaseObject implements Comparable{
 
 	public Object getField(String fieldName) throws NoSuchFieldException, IllegalAccessException {
 		return this.getClass().getField(fieldName).get(this);
+	}
+	public Object getField(int index) throws NoSuchFieldException, IllegalAccessException {
+		return this.getClass().getField(getAttributes().get(index).JavaFieldName).get(this);
 	}
 
 	public void setField(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
