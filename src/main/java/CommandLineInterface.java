@@ -244,12 +244,12 @@ public class CommandLineInterface {
 	
 	private static void printMenu() {
 		System.out.println(OWNED_HOUSING_CODE + ". Owned Housing (Create And Update Temp. Housing)");
-		System.out.println(MAKE_RESERVATION_CODE + ". Make Reservation");
-		System.out.println(RECORD_STAY_CODE + ". Record A Stay");
-		System.out.println(MANAGE_FAVORITES_CODE + ". Manage Favorites");
-		System.out.println(GIVE_FEEDBACK_CODE + ". Give Feedback");
-		System.out.println(MANAGE_TRUSTED_USERS_CODE + ". Manage Trusted Users");
-		System.out.println(BROWSE_FOR_HOUSING_CODE + ". Browse Housing");
+		System.out.println(MAKE_RESERVATION_CODE + ". Make Reservation (NOT FUNCTIONAL)");
+		System.out.println(RECORD_STAY_CODE + ". Record A Stay (NOT FUNCTIONAL)");
+		System.out.println(MANAGE_FAVORITES_CODE + ". Manage Favorites (NOT FUNCTIONAL)");
+		System.out.println(GIVE_FEEDBACK_CODE + ". Give Feedback (NOT FUNCTIONAL)");
+		System.out.println(MANAGE_TRUSTED_USERS_CODE + ". Manage Trusted Users (NOT FUNCTIONAL)");
+		System.out.println(BROWSE_FOR_HOUSING_CODE + ". Browse Housing (NOT FUNCTIONAL)");
 		System.out.println(EXIT_CODE + ". Exit");
 		System.out.print("Please enter your choice:");
 	}
