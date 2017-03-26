@@ -12,8 +12,8 @@ import java.util.List;
 public class ExampleObject extends BaseObject {
 
 	public final static List<Attribute> Attributes = asList(
-			new Attribute("Id", Integer.class, "id", JDBCType.INTEGER, true),
-			new Attribute("Name", String.class, "name", JDBCType.VARCHAR, false)
+			new Attribute("Id", Integer.class, "id", true),
+			new Attribute("Name", String.class, "name", false)
 	);
 	public final static String TableName = "example_table";
 

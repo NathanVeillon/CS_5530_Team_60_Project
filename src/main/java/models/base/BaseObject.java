@@ -1,18 +1,20 @@
 package main.java.models.base;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public abstract class BaseObject {
+public abstract class BaseObject implements Comparable{
 
 	public abstract String getTableName();
 	public abstract List<Attribute> getAttributes();
 
 	public HashMap<String, Attribute> ModifiedAttributes = new HashMap<>();
-
+	public boolean isModified(){
+		return !ModifiedAttributes.isEmpty();
+	}
 
 	public boolean IsCreating = true;
 	public boolean IsDeleted = false;
@@ -47,10 +49,50 @@ public abstract class BaseObject {
 //		}
 //	}
 
+	public boolean equals(Object o){
+		if(o == null)
+			return false;
+		if(o.getClass() != this.getClass())
+			return false;
+
+		BaseObject baseObject = (BaseObject) o;
+		return getPkString().equals(baseObject.getPkString());
+	}
+
 	public Attribute getRelatedAttr(String fieldName){
 		for (Attribute attribute: getAttributes()) {
-			if(attribute.JavaFieldName == fieldName){
+			if(attribute.JavaFieldName.equals(fieldName)){
 				return attribute;
+			}
+		}
+
+		return null;
+	}
+
+	public Attribute getRelatedAttrFromDbName(String databaseName){
+		for (Attribute attribute: getAttributes()) {
+			if(attribute.DatabaseName.equals(databaseName)){
+				return attribute;
+			}
+		}
+
+		return null;
+	}
+
+	public List<Attribute> getRelatedForeignEnitityAttributes(){
+		List<Attribute> attributes = new ArrayList<>();
+		for (Attribute attribute: getAttributes()) {
+			if(attribute.isForeignEntity())
+				attributes.add(attribute);
+		}
+
+		return attributes;
+	}
+
+	public Attribute getNullPrimaryKey(){
+		for (Attribute attr: getAttributes()) {
+			if(attr.IsPrimaryKey && this.IsCreating && !this.ModifiedAttributes.containsKey(attr.JavaFieldName)){
+				return getRelatedAttr(attr.JavaFieldName);
 			}
 		}
 
@@ -73,7 +115,6 @@ public abstract class BaseObject {
 		for (Attribute attribute: getAttributes()) {
 			if(attribute.IsPrimaryKey){
 				try {
-					System.out.println(getField(attribute.JavaFieldName));
 					pks.put(attribute.JavaFieldName, getField(attribute.JavaFieldName));
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -83,15 +124,20 @@ public abstract class BaseObject {
 
 		return pks;
 	}
-	
-	public Attribute getNullPrimaryKey(){
-		for (Attribute attr: getAttributes()) {
-			if(attr.IsPrimaryKey && this.IsCreating && !this.ModifiedAttributes.containsKey(attr.JavaFieldName)){
-				return getRelatedAttr(attr.JavaFieldName);
+
+	public String getPkString(){
+		String pkStr = "#";
+		for (Attribute attribute: getAttributes()) {
+			if(attribute.IsPrimaryKey){
+				try {
+					pkStr += getField(attribute.JavaFieldName).toString()+" || ";
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
-		return null;
+		return pkStr;
 	}
 
 	public Object getField(String fieldName) throws NoSuchFieldException, IllegalAccessException {
@@ -116,7 +162,7 @@ public abstract class BaseObject {
 	public void save() throws Exception {
 		if(IsCreating){
 			create();
-		}else {
+		}else if(isModified()) {
 			update();
 		}
 	}
@@ -130,6 +176,9 @@ public abstract class BaseObject {
 		String value = "(";
 		Collection<Attribute> attributes = getAttributes();
 		for (Attribute attribute: attributes) {
+			if(attribute.isForeignEntity())
+				continue;
+
 			if(attrNames.length() != 1){
 				attrNames += ", ";
 				value += ", ";
@@ -147,6 +196,8 @@ public abstract class BaseObject {
 
 		int i = 1;
 		for (Attribute attribute: attributes) {
+			if(attribute.isForeignEntity())
+				continue;
 			stmnt.setObject(i, getField(attribute.JavaFieldName));
 			i++;
 		}
@@ -167,6 +218,7 @@ public abstract class BaseObject {
 		resultSet.first();
 		setField(nullAttr.JavaFieldName, Integer.parseInt(resultSet.getObject(1).toString()));
 		IsCreating = false;
+		ModifiedAttributes.clear();
 		stmnt.close();
 	}
 
@@ -185,6 +237,8 @@ public abstract class BaseObject {
 		String whereStr = "WHERE ";
 		List<Attribute> attributes = getAttributes();
 		for (Attribute attribute: attributes) {
+			if(attribute.isForeignEntity())
+				continue;
 			if(setStr.length() != 4){
 				setStr += ", ";
 			}
@@ -213,6 +267,7 @@ public abstract class BaseObject {
 		}
 
 		stmnt.execute();
+		ModifiedAttributes.clear();
 		stmnt.close();
 	}
 
@@ -228,6 +283,9 @@ public abstract class BaseObject {
 		String whereStr = "WHERE ";
 		List<Attribute> attributes = getAttributes();
 		for (Attribute attribute: attributes) {
+			if(attribute.isForeignEntity())
+				continue;
+
 			if(attribute.IsPrimaryKey){
 				if(whereStr.length() != 6){
 					whereStr += ", ";
@@ -242,6 +300,9 @@ public abstract class BaseObject {
 
 		int i = 1;
 		for (Attribute attribute: attributes) {
+			if(attribute.isForeignEntity())
+				continue;
+
 			if(attribute.IsPrimaryKey){
 				stmnt.setObject(i, getField(attribute.JavaFieldName));
 				i++;
@@ -249,7 +310,16 @@ public abstract class BaseObject {
 		}
 
 		stmnt.execute();
+		IsDeleted = true;
 		stmnt.close();
 	}
 
+	@Override
+	public int compareTo(Object o) {
+		if(o == null)
+			return 1;
+		if(o.getClass() != this.getClass())
+			return 1;
+		return this.getPkString().compareTo(((BaseObject) o).getPkString());
+	}
 }

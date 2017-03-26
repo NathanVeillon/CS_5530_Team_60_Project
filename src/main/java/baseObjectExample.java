@@ -44,19 +44,21 @@ public class baseObjectExample {
 			stmnt.setObject(1, "New Entry");
 
 			ExampleObjectQuery query = new ExampleObjectQuery();
-			ObjectCollection objects = query.getCollectionFromObjectResult(stmnt.executeQuery());
+			ObjectCollection collection = query.getCollectionFromObjectResult(stmnt.executeQuery());
 
-			for(BaseObject object: objects){
+			for(BaseObject object: collection){
 				System.out.println("Example Object, Id: "+object.getField("Id")+" | Name: "+ object.getField("Name"));
 			}
+
+			stmnt.close();
 
 			ConnectionManager.commit();
 		}
 		catch (Exception e)
 		{
-			ConnectionManager.rollbackAll();
 			e.printStackTrace();
-			
+			ConnectionManager.rollbackAll();
+
 		}
 
 
