@@ -51,8 +51,6 @@ public final class ConnectionManager {
 
 		try {
 			for(PreparedStatement statement: OpenedStatements){
-				if(statement.isClosed())
-					continue;
 				statement.close();
 			}
 		}catch (Exception e){
