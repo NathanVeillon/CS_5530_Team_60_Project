@@ -23,7 +23,7 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("Address", String.class, "address", false),
 			new Attribute("URL", String.class, "url", false),
 			new Attribute("PhoneNumber", String.class, "phoneNumber", false),
-			new Attribute("YearBuilt", Date.class, "yearBuilt", false),
+			new Attribute("YearBuilt", String.class, "yearBuilt", false),
 			new Attribute("OwnerId", Integer.class, "idOwner", false),
 
 			new Attribute("Owner", User.class, "Users", false, MANY_TO_ONE)
@@ -46,7 +46,7 @@ public class TemporaryHousing extends BaseObject {
 	public String Address;
 	public String URL;
 	public String PhoneNumber;
-	public Date YearBuilt;
+	public String YearBuilt;
 	public Integer OwnerId;
 
 	public User Owner;
@@ -105,20 +105,12 @@ public class TemporaryHousing extends BaseObject {
 		return this;
 	}
 
-	public Date getYearBuilt() throws Exception {
-		return (Date) this.getField("YearBuilt");
-	}
-
-	public TemporaryHousing setYearBuilt(Date yearBuilt) throws Exception {
-		setField("YearBuilt", yearBuilt);
-		return this;
+	public String getYearBuilt() throws Exception {
+		return (String) this.getField("YearBuilt");
 	}
 
 	public TemporaryHousing setYearBuilt(String yearBuilt) throws Exception {
-		Calendar yearDate = Calendar.getInstance();
-		yearDate.clear();
-		yearDate.set(Calendar.YEAR, Integer.parseInt(yearBuilt));
-		setField("YearBuilt", new Date(yearDate.getTime().getTime()));
+		setField("YearBuilt", yearBuilt);
 		return this;
 	}
 
