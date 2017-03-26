@@ -261,8 +261,10 @@ public abstract class BaseObject implements Comparable{
 		PreparedStatement stmnt = ConnectionManager.prepareStatement(str);
 
 		int i = 1;
-		int j = attributes.size()+1;
+		int j = attributes.size()+1 - getRelatedForeignEnitityAttributes().size();
 		for (Attribute attribute: attributes) {
+			if(attribute.isForeignEntity())
+				continue;
 			stmnt.setObject(i, getField(attribute.JavaFieldName));
 			i++;
 			if(attribute.IsPrimaryKey){
