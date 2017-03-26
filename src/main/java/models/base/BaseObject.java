@@ -167,6 +167,7 @@ public abstract class BaseObject {
 		resultSet.first();
 		setField(nullAttr.JavaFieldName, Integer.parseInt(resultSet.getObject(1).toString()));
 		IsCreating = false;
+		stmnt.close();
 	}
 
 
@@ -212,6 +213,7 @@ public abstract class BaseObject {
 		}
 
 		stmnt.execute();
+		stmnt.close();
 	}
 
 	public void delete() throws Exception {
@@ -247,6 +249,7 @@ public abstract class BaseObject {
 		}
 
 		stmnt.execute();
+		stmnt.close();
 	}
 
 }
