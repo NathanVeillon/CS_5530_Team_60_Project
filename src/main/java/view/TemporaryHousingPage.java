@@ -84,13 +84,9 @@ public class TemporaryHousingPage {
 				continue;
 			}
 
-			System.out.println("Are You Sure Want To Create This Housing? (Y/N)");
-			try {
-				if(!Input.readLine().equals("Y"))
-					return;
-			} catch (IOException e) {
+
+			if(!CommandLineInterface.confirm("Are You Sure Want To Create This Housing? (Y/N)"))
 				return;
-			}
 
 			try {
 				ConnectionManager.startTransaction();
