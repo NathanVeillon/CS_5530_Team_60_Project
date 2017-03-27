@@ -12,6 +12,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 
 public class CommandLineInterface {
@@ -178,8 +180,7 @@ public class CommandLineInterface {
 						break;
 
 					case BROWSE_FOR_HOUSING_CODE:
-						// TODO
-						printWIPNote();
+						handleBrowse();
 						break;
 
 					default:
@@ -194,6 +195,87 @@ public class CommandLineInterface {
 			System.out.println("An unexpected error occurred...");
 			e.printStackTrace();
 			ConnectionManager.closeConnection();
+		}
+	}
+	
+	public static void handleBrowse() throws IOException, SQLException {
+		System.out.println("Browsing temporary housing...");
+		while (true) {
+			System.out.println("Please provide one of the following:");
+			System.out.println("Please enter price range (for example \"500-2000\" or \"N/A\":");
+			String priceRange = Input.readLine();
+			System.out.println("Please enter address (for example \"Wasatch Road\" or \"SLC\") or \"N/A\":");
+			String address = Input.readLine();
+			System.out.println("Please enter keywords separated by commas (for example \"New\" or \"Studio,DogFriendly,SchoolNearby\") or \"N/A\":");
+			String keywords = Input.readLine();
+			System.out.println("Please enter category (for example \"House\") or \"N/A\":");
+			String category = Input.readLine();
+			if ((priceRange == null || priceRange.equalsIgnoreCase("N/A")) && (address == null || address.equalsIgnoreCase("N/A")) && (keywords == null || keywords.equalsIgnoreCase("N/A")) && (category == null || category.equalsIgnoreCase("N/A"))) {
+				System.out.println(INVALID_USER_RESPONSE);
+				return;
+			}
+			
+			StringBuilder query = new StringBuilder();
+			query.append("SELECT DISTINCT th.category, th.name, th.address, th.ExpectedPrice, th.url, th.phoneNumber, th.yearBuilt, u.name FROM TemporaryHousing AS th JOIN Users AS u ON th.idOwner = u.idUser JOIN HasKeywords AS hk ON th.idTH=hk.idTH JOIN Keywords AS k ON hk.idKeywords=k.idKeywords WHERE ");
+			boolean addAnd = false;
+			if (priceRange != null && !priceRange.equalsIgnoreCase("N/A")) {
+				String[] rangeSplit = priceRange.split("-");
+				query.append(" th.ExpectedPrice >= ");
+				query.append(rangeSplit[0]);
+				query.append(" AND ");
+				query.append(" th.ExpectedPrice <= ");
+				query.append(rangeSplit[1]);
+				query.append(" ");
+				addAnd = true;
+			}
+			if (address != null && !address.equalsIgnoreCase("N/A")) {
+				if (addAnd) query.append(" AND ");
+				query.append(" th.address LIKE '%");
+				query.append(address);
+				query.append("%' ");
+				addAnd = true;
+			}
+			if (category != null && !category.equalsIgnoreCase("N/A")) {
+				if (addAnd) query.append(" AND ");
+				query.append(" th.category LIKE '%");
+				query.append(category);
+				query.append("%' ");
+				addAnd = true;
+			}
+			if (keywords != null && !keywords.equalsIgnoreCase("N/A")) {
+				if (addAnd) query.append(" AND ");
+				query.append("(");
+				String[] keywordsSplit = keywords.split(",");
+				boolean addOr = false;
+				for (String key : keywordsSplit) {
+					if (addOr) query.append(" OR ");
+					query.append(" k.word LIKE '%");
+					query.append(key);
+					query.append("%' ");
+					addOr = true;
+				}
+				query.append(")");
+			}
+			PreparedStatement statement = ConnectionManager.prepareStatement(query.toString());
+			ResultSet rs = statement.executeQuery();
+			if (!rs.isBeforeFirst()) {
+				System.out.println("No Matches...");
+				return;
+			}
+			boolean space = false;
+			while (rs.next()) {
+				if (space) System.out.println();
+				System.out.println("Category: " + rs.getString("th.category"));
+				System.out.println("Name: " + rs.getString("th.name"));
+				System.out.println("Address: " + rs.getString("th.address"));
+				System.out.println("Price: " + rs.getString("th.ExpectedPrice"));
+				System.out.println("URL: " + rs.getString("th.url"));
+				System.out.println("Phone Number: " + rs.getString("th.phoneNumber"));
+				System.out.println("Year Built: " + rs.getString("th.yearBuilt"));
+				System.out.println("Owner: " + rs.getString("u.name"));
+				space = true;
+			}
+			return;
 		}
 	}
 
@@ -249,7 +331,7 @@ public class CommandLineInterface {
 		System.out.println(MANAGE_FAVORITES_CODE + ". Manage Favorites (NOT FUNCTIONAL)");
 		System.out.println(GIVE_FEEDBACK_CODE + ". Give Feedback (NOT FUNCTIONAL)");
 		System.out.println(MANAGE_TRUSTED_USERS_CODE + ". Manage Trusted Users (NOT FUNCTIONAL)");
-		System.out.println(BROWSE_FOR_HOUSING_CODE + ". Browse Housing (NOT FUNCTIONAL)");
+		System.out.println(BROWSE_FOR_HOUSING_CODE + ". Browse Housing");
 		System.out.println(EXIT_CODE + ". Exit");
 		System.out.print("Please enter your choice:");
 	}
