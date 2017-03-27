@@ -84,7 +84,8 @@ public class AvailablePeriod extends BaseObject {
 	}
 
 	public AvailablePeriod setTemporaryHousing(main.java.models.TemporaryHousing temporaryHousing) throws Exception {
-		setTemporaryHousingId(temporaryHousing.getId());
+		if(temporaryHousing != null && !temporaryHousing.IsCreating && !temporaryHousing.IsDeleted)
+			setTemporaryHousingId(temporaryHousing.getId());
 		setField("TemporaryHousing", temporaryHousing);
 		return this;
 	}
@@ -103,7 +104,8 @@ public class AvailablePeriod extends BaseObject {
 	}
 
 	public AvailablePeriod setPeriod(main.java.models.Period period) throws Exception {
-		setPeriodId(period.getId());
+		if(period != null && !period.IsCreating && !period.IsDeleted)
+			setPeriodId(period.getId());
 		setField("Period", period);
 		return this;
 	}

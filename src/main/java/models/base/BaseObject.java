@@ -144,9 +144,12 @@ public abstract class BaseObject implements Comparable{
 
 	public Object getField(String fieldName) throws NoSuchFieldException, IllegalAccessException {
 		if(fieldName.contains(".")){
-			String dataObjectFeildName = fieldName.substring(0, fieldName.indexOf("."));
-			String subFeildName = fieldName.substring(fieldName.indexOf(".")+1);
-			return ((BaseObject)this.getClass().getField(dataObjectFeildName).get(this)).getField(subFeildName);
+			String dataObjectFieldName = fieldName.substring(0, fieldName.indexOf("."));
+			String subFieldName = fieldName.substring(fieldName.indexOf(".")+1);
+			BaseObject foreignObject = (BaseObject)this.getClass().getField(dataObjectFieldName).get(this);
+			if(foreignObject == null)
+				return null;
+			return foreignObject.getField(subFieldName);
 		}else {
 			return this.getClass().getField(fieldName).get(this);
 		}

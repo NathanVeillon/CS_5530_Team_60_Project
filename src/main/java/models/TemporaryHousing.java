@@ -29,7 +29,8 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("OwnerId", Integer.class, "idOwner", false),
 
 			new Attribute("Owner", User.class, "Users", false, MANY_TO_ONE),
-			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY)
+			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY),
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY)
 	);
 	public final static String TableName = "TemporaryHousing";
 
@@ -56,6 +57,7 @@ public class TemporaryHousing extends BaseObject {
 
 	public User Owner;
 	public ObjectCollection AvailablePeriods;
+	public ObjectCollection Reservations;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -149,10 +151,31 @@ public class TemporaryHousing extends BaseObject {
 		return relatedPeriods;
 	}
 
+	public ObjectCollection getReservations() throws Exception {
+		if(this.Reservations == null && !IsCreating){
+			String query = "SELECT * FROM "+ Reservation.TableName+" " +
+					"JOIN ("+Period.TableName+", "+User.TableName+") " +
+					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idUser = "+User.TableName+".idUser) " +
+					"WHERE "+Reservation.TableName+".idTH = ?;";
+			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+			statement.setInt(1, getId());
+			ReservationQuery query1 = new ReservationQuery();
+			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			setReservations(collection);
+		}
+		return (ObjectCollection) this.getField("AvailablePeriods");
+	}
+
+	public TemporaryHousing setReservations(ObjectCollection collection) throws Exception {
+		if(collection.size() > 0 && collection.get(0).getClass() != Reservation.class)
+				throw new Exception("The Collection had An Invalid Class");
+		setField("Reservations", collection);
+		return this;
+	}
 
 	public ObjectCollection getAvailablePeriods() throws Exception {
 		if(this.AvailablePeriods == null && !IsCreating){
-			String query = "SELECT * FROM "+ AvailablePeriod.TableName+" JOIN ("+Period.TableName+") ON ("+AvailablePeriod.TableName+".idPeriod = "+Period.TableName+".idPeriod)  WHERE "+AvailablePeriod.TableName+".idTH = ?;";
+			String query = "SELECT * FROM "+ AvailablePeriod.TableName+" JOIN ("+Period.TableName+") ON ("+AvailablePeriod.TableName+".idPeriod = "+Period.TableName+".idPeriod)  WHERE "+AvailablePeriod.TableName+".idTH = ? ORDER BY "+Period.TableName+".`from` ASC;";
 			PreparedStatement statement = ConnectionManager.prepareStatement(query);
 			statement.setInt(1, getId());
 			AvailablePeriodQuery query1 = new AvailablePeriodQuery();

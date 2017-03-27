@@ -9,12 +9,22 @@ import java.util.*;
 public class ObjectCollection extends ArrayList<BaseObject> {
 	@Override
 	public boolean add(BaseObject baseObject) {
+		if(baseObject.IsCreating)
+			return super.add(baseObject);
+
+
 		int i = this.indexOf(baseObject);
 		if(i == -1) {
 			return super.add(baseObject);
 		}else {
 			this.set(i, baseObject);
 			return false;
+		}
+	}
+
+	public void save() throws Exception{
+		for (BaseObject object: this){
+			object.save();
 		}
 	}
 
@@ -35,7 +45,9 @@ public class ObjectCollection extends ArrayList<BaseObject> {
 		for (int i = 0; i < this.size();  i++){
 			for (int j = 0; j < fieldsToPrint.length; j++){
 				try {
-					maxWidth[j] = Math.max(maxWidth[j], this.get(i).getField(fieldsToPrint[j]).toString().length());
+					Object value = this.get(i).getField(fieldsToPrint[j]);
+					String string = (value == null) ? "-" : value.toString();
+					maxWidth[j] = Math.max(maxWidth[j], string.length());
 				} catch (Exception e) {
 					maxWidth[j] = Math.max(maxWidth[j], ("ERROR: "+e.getMessage()).length());
 				}
@@ -63,10 +75,15 @@ public class ObjectCollection extends ArrayList<BaseObject> {
 			String toPrint = "║";
 			for (int j = 0; j < fieldsToPrint.length; j++){
 				String text;
-				try {
-					text = this.get(i).getField(fieldsToPrint[j]).toString();
-				} catch (Exception e) {
-					text = "ERROR: "+e.getMessage();
+				if(fieldsToPrint[j].equals("")) {
+					text = Integer.toString(i + 1);
+				}else {
+					try {
+						Object value = this.get(i).getField(fieldsToPrint[j]);
+						text = (value == null) ? "-" : value.toString();
+					} catch (Exception e) {
+						text = "ERROR: "+e.getMessage();
+					}
 				}
 				int padding = maxWidth[j] - text.length();
 				toPrint += text+String.join("", Collections.nCopies(padding," "));

@@ -220,9 +220,9 @@ public class UpdateOwnedTemporaryHousingPage {
 				System.out.print("Price Per Night (Ex. 123):");
 				selectedAvailablePeriod.setPricePerNight(Integer.parseInt(Input.readLine()));
 
-				String errorMessage = relatedPeriod.validatePeriod(periodsRelatedToTheTempHousing);
+				String errorMessage = relatedPeriod.validateAvailablePeriod(periodsRelatedToTheTempHousing);
 				if(errorMessage != null){
-					System.out.println(CommandLineInterface.INVALID_USER_RESPONSE);
+					System.out.println("Period Given Is Not Valid");
 					System.out.println(errorMessage);
 					continue;
 				}
@@ -257,7 +257,7 @@ public class UpdateOwnedTemporaryHousingPage {
 				}
 			}
 
-			System.out.println("No housing with that Id found.");
+			System.out.println("No Available Period with that Id found.");
 		}catch (Exception e){
 			System.out.println("Unexpected Error:");
 			e.printStackTrace();

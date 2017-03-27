@@ -6,6 +6,7 @@ import main.java.managers.ConnectionManager;
 import main.java.models.base.ObjectCollection;
 import main.java.models.UserQuery;
 import main.java.view.OwnedTemporaryHousingPage;
+import main.java.view.UserReservationsPage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -158,7 +159,7 @@ public class CommandLineInterface {
 
 					case MAKE_RESERVATION_CODE:
 						// TODO
-						printWIPNote();
+						UserReservationsPage.indexAction();
 						break;
 
 					case RECORD_STAY_CODE:
@@ -423,7 +424,7 @@ public class CommandLineInterface {
 	
 	private static void printMenu() {
 		System.out.println(OWNED_HOUSING_CODE + ". Owned Housing (Create And Update Temp. Housing)");
-		System.out.println(MAKE_RESERVATION_CODE + ". Make Reservation (NOT FUNCTIONAL)");
+		System.out.println(MAKE_RESERVATION_CODE + ". Make Reservation");
 		System.out.println(RECORD_STAY_CODE + ". Record A Stay (NOT FUNCTIONAL)");
 		System.out.println(MANAGE_FAVORITES_CODE + ". Manage Favorites");
 		System.out.println(GIVE_FEEDBACK_CODE + ". Give Feedback");

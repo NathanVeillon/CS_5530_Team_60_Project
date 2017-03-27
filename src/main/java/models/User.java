@@ -1,9 +1,11 @@
 package main.java.models;
 
+import main.java.managers.ConnectionManager;
 import main.java.models.base.Attribute;
 import main.java.models.base.BaseObject;
 import main.java.models.base.ObjectCollection;
 
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -23,7 +25,8 @@ public class User extends BaseObject {
 			new Attribute("PhoneNumber", String.class, "phoneNumber", false),
 			new Attribute("IsAdmin", Integer.class, "isAdmin", false),
 
-			new Attribute("OwnedTemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, ONE_TO_MANY)
+			new Attribute("OwnedTemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, ONE_TO_MANY),
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY)
 	);
 	public final static String TableName = "Users";
 
@@ -46,6 +49,7 @@ public class User extends BaseObject {
 	public Integer IsAdmin;
 
 	public ObjectCollection OwnedTemporaryHousing;
+	public ObjectCollection Reservations;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -108,6 +112,28 @@ public class User extends BaseObject {
 	public User setIsAdmin(boolean isAdmin) throws Exception {
 		int intAdmin = (isAdmin) ? 1 : 0;
 		setField("IsAdmin", intAdmin);
+		return this;
+	}
+
+	public ObjectCollection getReservations() throws Exception {
+		if(this.Reservations == null && !IsCreating){
+			String query = "SELECT * FROM "+ Reservation.TableName+" " +
+					"JOIN ("+Period.TableName+", "+TemporaryHousing.TableName+") " +
+					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idTH = "+TemporaryHousing.TableName+".idTH) " +
+					"WHERE "+Reservation.TableName+".idUser = ?;";
+			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+			statement.setInt(1, getId());
+			ReservationQuery query1 = new ReservationQuery();
+			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			setReservations(collection);
+		}
+		return (ObjectCollection) this.getField("Reservations");
+	}
+
+	public User setReservations(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != Reservation.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("Reservations", collection);
 		return this;
 	}
 

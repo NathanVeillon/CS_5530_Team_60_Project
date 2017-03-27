@@ -20,7 +20,8 @@ public class Period extends BaseObject {
 			new Attribute("To", Date.class, "to", false),
 			new Attribute("From", Date.class, "from", false),
 
-			new Attribute("AvailablePeriods", User.class, "Available", false, ONE_TO_MANY)
+			new Attribute("AvailablePeriods", User.class, "Available", false, ONE_TO_MANY),
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY)
 	);
 	public final static String TableName = "Period";
 
@@ -39,6 +40,7 @@ public class Period extends BaseObject {
 	public Date From;
 
 	public ObjectCollection AvailablePeriods;
+	public ObjectCollection Reservations;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -67,7 +69,7 @@ public class Period extends BaseObject {
 		return this;
 	}
 
-	public String validatePeriod(){
+	public String validateBasicPeriod(){
 		try {
 			if(this.getFrom().after(this.getTo())){
 				return "The Period Must Have The From Date Come Before The To Date";
@@ -79,9 +81,9 @@ public class Period extends BaseObject {
 		return null;
 	}
 
-	public String validatePeriod(ObjectCollection relatedPeriods){
+	public String validateAvailablePeriod(ObjectCollection relatedPeriods){
 		if(relatedPeriods.size() == 0)
-			return validatePeriod();
+			return validateBasicPeriod();
 
 		if(relatedPeriods.get(0).getClass() != Period.class)
 			return "Collection Of Related Periods Does Not Contain Period Objects";
@@ -90,7 +92,7 @@ public class Period extends BaseObject {
 			for (BaseObject object: relatedPeriods){
 				Period period = (Period)object;
 
-				if(this.Id != null && period.getId() == this.getId())
+				if(!this.IsCreating && period.getId().equals(this.getId()))
 					continue;
 
 				boolean intersectionExists = this.getFrom().before(period.getTo()) && !(this.getTo().before(period.getFrom()));
@@ -102,6 +104,34 @@ public class Period extends BaseObject {
 		}
 
 
-		return validatePeriod();
+		return validateBasicPeriod();
+	}
+
+	public String validateReservationPeriod(TemporaryHousing temporaryHousing){
+		try {
+			ObjectCollection availablePeriods = temporaryHousing.getAvailablePeriods();
+
+			boolean existsWithinTotally = false;
+
+			for (BaseObject object: availablePeriods){
+				AvailablePeriod availablePeriod = (AvailablePeriod)object;
+				Period period = availablePeriod.getPeriod();
+
+				existsWithinTotally = (this.getFrom().after(period.getFrom()) || this.getFrom().equals(period.getFrom()))
+						&& (this.getTo().before(period.getTo()) || this.getTo().equals(period.getTo()));
+				if(existsWithinTotally) {
+					break;
+				}
+
+			}
+
+			if(!existsWithinTotally)
+				return "Does Not Exist Within One Available Period";
+		}catch (Exception e){
+			return "Error: "+e.getMessage();
+		}
+
+
+		return validateBasicPeriod();
 	}
 }
