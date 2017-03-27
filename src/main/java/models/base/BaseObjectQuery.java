@@ -37,7 +37,9 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 								foreignCollection = (foreignCollection == null) ? new ObjectCollection() : foreignCollection;
 								BaseObject aForiegnItem = (foreignCollection.isEmpty()) ? objectClass.newInstance() : foreignCollection.get(0);
 								aForiegnItem.setField(aForiegnItem.getRelatedAttrFromDbName(md.getColumnName(i)).JavaFieldName, resultSet.getObject(i));
+								aForiegnItem.IsCreating = false;
 								foreignCollection.add(aForiegnItem);
+								newItem.setField(attr.JavaFieldName, foreignCollection);
 								break;
 
 							case ONE_TO_ONE:
@@ -45,6 +47,8 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 								BaseObject foreignEntity = (BaseObject) newItem.getField(attr.JavaFieldName);
 								foreignEntity = (foreignEntity == null) ? objectClass.newInstance(): foreignEntity;
 								foreignEntity.setField(foreignEntity.getRelatedAttrFromDbName(md.getColumnName(i)).JavaFieldName, resultSet.getObject(i));
+								foreignEntity.IsCreating = false;
+								newItem.setField(attr.JavaFieldName, foreignEntity);
 								break;
 
 							default:
@@ -100,6 +104,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 					}
 				}
 			}
+			item.IsCreating = false;
 			collection.add(item);
 		}
 

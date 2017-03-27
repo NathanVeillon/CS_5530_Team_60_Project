@@ -1,11 +1,12 @@
 package main.java.models;
 
+import main.java.managers.ConnectionManager;
 import main.java.models.base.Attribute;
 import main.java.models.base.BaseObject;
+import main.java.models.base.ObjectCollection;
 
-import java.time.Year;
-import java.util.Calendar;
-import java.sql.Date;
+import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -24,9 +25,11 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("URL", String.class, "url", false),
 			new Attribute("PhoneNumber", String.class, "phoneNumber", false),
 			new Attribute("YearBuilt", String.class, "yearBuilt", false),
+			new Attribute("ExpectedPrice", BigDecimal.class, "expectedPrice", false),
 			new Attribute("OwnerId", Integer.class, "idOwner", false),
 
-			new Attribute("Owner", User.class, "Users", false, MANY_TO_ONE)
+			new Attribute("Owner", User.class, "Users", false, MANY_TO_ONE),
+			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY)
 	);
 	public final static String TableName = "TemporaryHousing";
 
@@ -46,10 +49,13 @@ public class TemporaryHousing extends BaseObject {
 	public String Address;
 	public String URL;
 	public String PhoneNumber;
+	public BigDecimal ExpectedPrice;
+
 	public String YearBuilt;
 	public Integer OwnerId;
 
 	public User Owner;
+	public ObjectCollection AvailablePeriods;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -113,6 +119,15 @@ public class TemporaryHousing extends BaseObject {
 		setField("YearBuilt", yearBuilt);
 		return this;
 	}
+	
+	public BigDecimal getExpectedPrice() throws Exception {
+		return (BigDecimal) this.getField("ExpectedPrice");
+	}
+
+	public TemporaryHousing setExpectedPrice(BigDecimal expectedPrice) throws Exception {
+		setField("ExpectedPrice", expectedPrice);
+		return this;
+	}
 
 	public Integer getOwnerId() throws Exception {
 		return (Integer) this.getField("OwnerId");
@@ -123,7 +138,48 @@ public class TemporaryHousing extends BaseObject {
 		return this;
 	}
 
+	public ObjectCollection getRelatedPeriods() throws Exception{
+		ObjectCollection AvailablePeriods = getAvailablePeriods();
+		ObjectCollection relatedPeriods = new ObjectCollection();
+		for(BaseObject object: AvailablePeriods){
+			AvailablePeriod availablePeriod = (AvailablePeriod)object;
+			relatedPeriods.add(availablePeriod.getPeriod());
+		}
+
+		return relatedPeriods;
+	}
+
+
+	public ObjectCollection getAvailablePeriods() throws Exception {
+		if(this.AvailablePeriods == null && !IsCreating){
+			String query = "SELECT * FROM "+ AvailablePeriod.TableName+" JOIN ("+Period.TableName+") ON ("+AvailablePeriod.TableName+".idPeriod = "+Period.TableName+".idPeriod)  WHERE "+AvailablePeriod.TableName+".idTH = ?;";
+			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+			statement.setInt(1, getId());
+			AvailablePeriodQuery query1 = new AvailablePeriodQuery();
+			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			setAvailablePeriods(collection);
+		}
+		return (ObjectCollection) this.getField("AvailablePeriods");
+	}
+
+
+	public TemporaryHousing setAvailablePeriods(ObjectCollection collection) throws Exception {
+		if(collection.size() > 0 && collection.get(0).getClass() != AvailablePeriod.class)
+				throw new Exception("The Collection had An Invalid Class");
+		setField("AvailablePeriods", collection);
+		return this;
+	}
+
 	public User getOwner() throws Exception {
+		if(this.Owner == null && !IsCreating){
+			String query = "SELECT * FROM "+main.java.models.Period.TableName+" WHERE idUser = ?;";
+			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+			statement.setInt(1, getOwnerId());
+			UserQuery query1 = new UserQuery();
+			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			setOwner((User) collection.get(0));
+			statement.close();
+		}
 		return (User) this.getField("Owner");
 	}
 

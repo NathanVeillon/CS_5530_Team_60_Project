@@ -143,7 +143,14 @@ public abstract class BaseObject implements Comparable{
 	}
 
 	public Object getField(String fieldName) throws NoSuchFieldException, IllegalAccessException {
-		return this.getClass().getField(fieldName).get(this);
+		if(fieldName.contains(".")){
+			String dataObjectFeildName = fieldName.substring(0, fieldName.indexOf("."));
+			String subFeildName = fieldName.substring(fieldName.indexOf(".")+1);
+			return ((BaseObject)this.getClass().getField(dataObjectFeildName).get(this)).getField(subFeildName);
+		}else {
+			return this.getClass().getField(fieldName).get(this);
+		}
+
 	}
 	public Object getField(int index) throws NoSuchFieldException, IllegalAccessException {
 		return this.getClass().getField(getAttributes().get(index).JavaFieldName).get(this);
@@ -157,7 +164,7 @@ public abstract class BaseObject implements Comparable{
 
 		ModifiedAttributes.put(fieldName, attr);
 
-		if(attr.IsPrimaryKey && value != getField(fieldName)){
+		if(attr.IsPrimaryKey && !value.equals(getField(fieldName))){
 			IsCreating = true;
 		}
 
@@ -188,7 +195,7 @@ public abstract class BaseObject implements Comparable{
 				attrNames += ", ";
 				value += ", ";
 			}
-			attrNames += attribute.DatabaseName;
+			attrNames += "`"+attribute.DatabaseName+"`";
 			value += "?"; // Using Param To have safe inserts
 		}
 
@@ -197,6 +204,8 @@ public abstract class BaseObject implements Comparable{
 		String str = "INSERT INTO "+getTableName()+" "+attrNames
 				+" VALUES "
 				+value+";";
+
+		System.out.println(str);
 		PreparedStatement stmnt = ConnectionManager.prepareStatement(str);
 
 		int i = 1;
@@ -208,6 +217,7 @@ public abstract class BaseObject implements Comparable{
 		}
 
 		stmnt.executeUpdate();
+
 
 		// To Deal With AutoIncrement Field.
 		Attribute nullAttr = getNullPrimaryKey();
@@ -247,13 +257,13 @@ public abstract class BaseObject implements Comparable{
 			if(setStr.length() != 4){
 				setStr += ", ";
 			}
-			setStr += attribute.DatabaseName + " =  ?";// Using Param To have safe updates
+			setStr += "`"+attribute.DatabaseName+"`" + " =  ?";// Using Param To have safe updates
 
 			if(attribute.IsPrimaryKey){
 				if(whereStr.length() != 6){
-					whereStr += ", ";
+					whereStr += " AND ";
 				}
-				whereStr += attribute.DatabaseName + " = ?";// Using Param To have safe updates
+				whereStr += "`"+attribute.DatabaseName+"`" + " = ?";// Using Param To have safe updates
 			}
 		}
 
@@ -295,7 +305,7 @@ public abstract class BaseObject implements Comparable{
 
 			if(attribute.IsPrimaryKey){
 				if(whereStr.length() != 6){
-					whereStr += ", ";
+					whereStr += " AND ";
 				}
 
 				whereStr += attribute.DatabaseName + " = ?";// Using Param To have safe updates

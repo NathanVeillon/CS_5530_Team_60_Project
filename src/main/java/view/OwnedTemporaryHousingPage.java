@@ -15,7 +15,7 @@ import java.sql.PreparedStatement;
 /**
  * Created by StudentNathan on 3/26/2017.
  */
-public class TemporaryHousingPage {
+public class OwnedTemporaryHousingPage {
 
 
 	private static final int EXIT_CODE = 0;
@@ -77,13 +77,14 @@ public class TemporaryHousingPage {
 				newTemporaryHousing.setPhoneNumber(Input.readLine());
 				System.out.print("Year Built (Ex. 2007):");
 				newTemporaryHousing.setYearBuilt(Input.readLine());
+				System.out.print("Expected Price (Ex. 3640.05):");
+				newTemporaryHousing.setYearBuilt(Input.readLine());
 				newTemporaryHousing.setOwner(UserManager.getCurrentUser());
 			}catch (Exception e){
 				System.out.println(CommandLineInterface.INVALID_USER_RESPONSE);
 				System.out.println("Error: "+e.getMessage());
 				continue;
 			}
-
 
 			if(!CommandLineInterface.confirm("Are You Sure Want To Create This Housing? (Y/N)"))
 				return;
@@ -114,42 +115,7 @@ public class TemporaryHousingPage {
 					return;
 		}
 
-		while (true) {
-			try {
-				System.out.println("Please Enter In The Updated Temp. Housing Info.");
-				System.out.print("Name:");
-				temporaryHousingToUpdate.setName(Input.readLine());
-				System.out.print("Category:");
-				temporaryHousingToUpdate.setCategory(Input.readLine());
-				System.out.print("Address:");
-				temporaryHousingToUpdate.setAddress(Input.readLine());
-				System.out.print("URL:");
-				temporaryHousingToUpdate.setURL(Input.readLine());
-				System.out.print("Phone Number (Ex. \"+1 (555) 555-5555\"):");
-				temporaryHousingToUpdate.setPhoneNumber(Input.readLine());
-				System.out.print("Year Built (Ex. 2007):");
-				temporaryHousingToUpdate.setYearBuilt(Input.readLine());
-				temporaryHousingToUpdate.setOwner(UserManager.getCurrentUser());
-			} catch (Exception e) {
-				System.out.println(CommandLineInterface.INVALID_USER_RESPONSE);
-				System.out.println("Error: " + e.getMessage());
-				continue;
-			}
-
-			if (CommandLineInterface.confirm("Are You Happy With Your Changes? (Y/N)")){
-				try {
-					ConnectionManager.startTransaction();
-					System.out.println("Updating Temporary Housing");
-					temporaryHousingToUpdate.save();
-					ConnectionManager.commit();
-					System.out.println("Temporary Housing Updated");
-					return;
-				}catch (Exception e){
-					System.out.println("Unexpected Error:");
-					e.printStackTrace();
-				}
-			}
-		}
+		UpdateOwnedTemporaryHousingPage.indexAction(temporaryHousingToUpdate);
 	}
 
 	private static TemporaryHousing selectTempHousingToUpdate(){

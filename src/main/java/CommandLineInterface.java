@@ -1,12 +1,11 @@
 package main.java;
 
 import main.java.managers.UserManager;
-import main.java.models.TemporaryHousing;
 import main.java.models.User;
 import main.java.managers.ConnectionManager;
 import main.java.models.base.ObjectCollection;
 import main.java.models.UserQuery;
-import main.java.view.TemporaryHousingPage;
+import main.java.view.OwnedTemporaryHousingPage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -76,6 +75,7 @@ public class CommandLineInterface {
 								stmnt.setString(2, enteredPassword);
 								UserQuery userQuery = new UserQuery();
 								ObjectCollection UserCollection = userQuery.getCollectionFromObjectResult(stmnt.executeQuery());
+								stmnt.close();
 								if (UserCollection.size() == 0) {
 									System.out.println("Account does not exist");
 									break;
@@ -149,7 +149,7 @@ public class CommandLineInterface {
 						return;
 
 					case OWNED_HOUSING_CODE:
-						TemporaryHousingPage.indexAction();
+						OwnedTemporaryHousingPage.indexAction();
 						break;
 
 					case MAKE_RESERVATION_CODE:
