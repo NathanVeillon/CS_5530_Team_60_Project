@@ -280,98 +280,114 @@ public class CommandLineInterface {
 		}
 	}
 	
-	public static void handleFavorites() throws Exception {
-		while (true) {
-			String query = "SELECT DISTINCT th.idTH, th.category, th.name, th.address, th.expectedPrice, th.url, th.phoneNumber, th.yearBuilt FROM TemporaryHousing AS th JOIN Favorites AS f ON th.idTH = f.idTH WHERE f.idUser=" + UserManager.getCurrentUser().getId();
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			ResultSet rs = statement.executeQuery();
-			Set<String> alreadyFavorite = new HashSet<String>();
-			if (!rs.isBeforeFirst()) {
-				System.out.println("You currently have no favorites...");
-			} else {
-				System.out.println("Here are your current favorites:");
-				boolean space = false;
-				while (rs.next()) {
-					if (space) System.out.println();
-					alreadyFavorite.add(rs.getString("th.idTH"));
-					System.out.println("ID: " + rs.getString("th.idTH"));
-					System.out.println("Category: " + rs.getString("th.category"));
-					System.out.println("Name: " + rs.getString("th.name"));
-					System.out.println("Address: " + rs.getString("th.address"));
-					System.out.println("Price: " + rs.getString("th.expectedPrice"));
-					System.out.println("URL: " + rs.getString("th.url"));
-					System.out.println("Phone Number: " + rs.getString("th.phoneNumber"));
-					System.out.println("Year Built: " + rs.getString("th.yearBuilt"));
-					space = true;
+	public static void handleFavorites() {
+		try {
+			while (true) {
+				String query = "SELECT DISTINCT th.idTH, th.category, th.name, th.address, th.expectedPrice, th.url, th.phoneNumber, th.yearBuilt FROM TemporaryHousing AS th JOIN Favorites AS f ON th.idTH = f.idTH WHERE f.idUser=" + UserManager.getCurrentUser().getId();
+				PreparedStatement statement = ConnectionManager.prepareStatement(query);
+				ResultSet rs = statement.executeQuery();
+				Set<String> alreadyFavorite = new HashSet<String>();
+				if (!rs.isBeforeFirst()) {
+					System.out.println("You currently have no favorites...");
+				} else {
+					System.out.println("Here are your current favorites:");
+					boolean space = false;
+					while (rs.next()) {
+						if (space) System.out.println();
+						alreadyFavorite.add(rs.getString("th.idTH"));
+						System.out.println("ID: " + rs.getString("th.idTH"));
+						System.out.println("Category: " + rs.getString("th.category"));
+						System.out.println("Name: " + rs.getString("th.name"));
+						System.out.println("Address: " + rs.getString("th.address"));
+						System.out.println("Price: " + rs.getString("th.expectedPrice"));
+						System.out.println("URL: " + rs.getString("th.url"));
+						System.out.println("Phone Number: " + rs.getString("th.phoneNumber"));
+						System.out.println("Year Built: " + rs.getString("th.yearBuilt"));
+						space = true;
+					}
 				}
-			}
-			
-			
-			System.out.println("Please enter ID of housing you would like to give favorite:");
-			String id = Input.readLine();
-			System.out.println("Please wait...");
-			if (id == null || id.length() < 0) {
-				System.out.println(INVALID_USER_RESPONSE);
+				
+				
+				System.out.println("Please enter ID of housing you would like to give favorite:");
+				String id = Input.readLine();
+				System.out.println("Please wait...");
+				if (id == null || id.length() < 0) {
+					System.out.println(INVALID_USER_RESPONSE);
+					return;
+				}
+				if (alreadyFavorite.contains(id)) {
+					System.out.println("That housing is already in your favorites");
+					return;
+				}
+				query = "INSERT INTO Favorites (idUser, idTH, date) VALUES (" + UserManager.getCurrentUser().getId() + ", " + id + ", CURDATE())";
+				statement = ConnectionManager.prepareStatement(query);
+				ConnectionManager.startTransaction();
+				statement.executeUpdate();
+				ConnectionManager.commitAll();
+				System.out.println("Housing is now in your favorites");
 				return;
 			}
-			if (alreadyFavorite.contains(id)) {
-				System.out.println("That housing is already in your favorites");
-				return;
-			}
-			query = "INSERT INTO Favorites (idUser, idTH, date) VALUES (" + UserManager.getCurrentUser().getId() + ", " + id + ", CURDATE())";
-			statement = ConnectionManager.prepareStatement(query);
-			statement.executeUpdate();
-			System.out.println("Housing is now in your favorites");
+		} catch (Exception e) {
+			System.out.println("Error adding favorites, please make sure ID is valid");
+			e.printStackTrace();
 			return;
 		}
 	}
 	
-	public static void handleGiveFeedback() throws Exception {
-		while (true) {
-			System.out.println("Please enter ID of housing you would like to give feedback:");
-			String id = Input.readLine();
-			System.out.println("Please wait...");
-			if (id == null || id.length() < 0) {
-				System.out.println(INVALID_USER_RESPONSE);
+	public static void handleGiveFeedback() {
+		try {
+			while (true) {
+				System.out.println("Please enter ID of housing you would like to give feedback:");
+				String id = Input.readLine();
+				System.out.println("Please wait...");
+				if (id == null || id.length() < 0) {
+					System.out.println(INVALID_USER_RESPONSE);
+					return;
+				}
+				String query = "SELECT idTH FROM TemporaryHousing WHERE idTH=" + id;
+				PreparedStatement statement = ConnectionManager.prepareStatement(query);
+				ResultSet rs = statement.executeQuery();
+				if (!rs.isBeforeFirst()) {
+					System.out.println("No Matches...");
+					return;
+				}
+				query = "SELECT idfeedback FROM feedback WHERE idTH=" + id + " AND idUser=" + UserManager.getCurrentUser().getId();
+				statement = ConnectionManager.prepareStatement(query);
+				rs = statement.executeQuery();
+				if (rs.isBeforeFirst()) {
+					System.out.println("You have already left feedback for this housing...");
+					return;
+				}
+				
+				System.out.println("Please enter score (0-10):");
+				String score = Input.readLine();
+				int scoreParsed = -1;
+				try {
+					scoreParsed = Integer.parseInt(score);
+				} catch (NumberFormatException e) {
+					System.out.println(INVALID_USER_RESPONSE);
+					continue;
+				}
+				if (scoreParsed < 0 || scoreParsed > 10) {
+					System.out.println(INVALID_USER_RESPONSE);
+					continue;
+				}
+				System.out.println("Please enter text (optional):");
+				String text = Input.readLine();
+				if (text == null) {
+					text = "";
+				}
+				query = "INSERT INTO feedback (score, text, date, idUser, idTH) VALUES (" + scoreParsed + ", '" + text + "', CURDATE(), " + UserManager.getCurrentUser().getId() + ", " + id + ")";
+				statement = ConnectionManager.prepareStatement(query);
+				ConnectionManager.startTransaction();
+				statement.executeUpdate();
+				ConnectionManager.commitAll();
+				System.out.println("Thank you for leaving feedback");
 				return;
 			}
-			String query = "SELECT idTH FROM TemporaryHousing WHERE idTH=" + id;
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			ResultSet rs = statement.executeQuery();
-			if (!rs.isBeforeFirst()) {
-				System.out.println("No Matches...");
-				return;
-			}
-			query = "SELECT idfeedback FROM feedback WHERE idTH=" + id + " AND idUser=" + UserManager.getCurrentUser().getId();
-			statement = ConnectionManager.prepareStatement(query);
-			rs = statement.executeQuery();
-			if (rs.isBeforeFirst()) {
-				System.out.println("You have already left feedback for this housing...");
-				return;
-			}
-			
-			System.out.println("Please enter score (0-10):");
-			String score = Input.readLine();
-			int scoreParsed = -1;
-			try {
-				scoreParsed = Integer.parseInt(score);
-			} catch (NumberFormatException e) {
-				System.out.println(INVALID_USER_RESPONSE);
-				continue;
-			}
-			if (scoreParsed < 0 || scoreParsed > 10) {
-				System.out.println(INVALID_USER_RESPONSE);
-				continue;
-			}
-			System.out.println("Please enter text (optional):");
-			String text = Input.readLine();
-			if (text == null) {
-				text = "";
-			}
-			query = "INSERT INTO feedback (score, text, date, idUser, idTH) VALUES (" + scoreParsed + ", '" + text + "', CURDATE(), " + UserManager.getCurrentUser().getId() + ", " + id + ")";
-			statement = ConnectionManager.prepareStatement(query);
-			statement.executeUpdate();
-			System.out.println("Thank you for leaving feedback");
+		} catch (Exception e) {
+			System.out.println("Error giving feedback, please make sure ID is valid");
+			e.printStackTrace();
 			return;
 		}
 	}
