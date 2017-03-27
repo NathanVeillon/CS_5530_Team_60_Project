@@ -216,7 +216,7 @@ public class CommandLineInterface {
 			}
 			
 			StringBuilder query = new StringBuilder();
-			query.append("SELECT DISTINCT th.idTH, th.category, th.name, th.address, th.expectedPrice, th.url, th.phoneNumber, th.yearBuilt, u.name FROM TemporaryHousing AS th JOIN Users AS u ON th.idOwner = u.idUser JOIN HasKeywords AS hk ON th.idTH=hk.idTH JOIN Keywords AS k ON hk.idKeywords=k.idKeywords WHERE ");
+			query.append("SELECT DISTINCT th.idTH, th.category, th.name, th.address, th.expectedPrice, th.url, th.phoneNumber, th.yearBuilt, u.name FROM TemporaryHousing AS th JOIN Users AS u ON th.idOwner = u.idUser LEFT JOIN HasKeywords AS hk ON th.idTH=hk.idTH LEFT JOIN Keywords AS k ON hk.idKeywords=k.idKeywords WHERE ");
 			boolean addAnd = false;
 			if (priceRange != null && !priceRange.equalsIgnoreCase("N/A")) {
 				String[] rangeSplit = priceRange.split("-");
