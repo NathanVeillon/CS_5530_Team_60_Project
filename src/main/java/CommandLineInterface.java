@@ -165,8 +165,7 @@ public class CommandLineInterface {
 						break;
 
 					case MANAGE_FAVORITES_CODE:
-						// TODO
-						printWIPNote();
+						handleFavorites();
 						break;
 
 					case GIVE_FEEDBACK_CODE:
@@ -215,14 +214,14 @@ public class CommandLineInterface {
 			}
 			
 			StringBuilder query = new StringBuilder();
-			query.append("SELECT DISTINCT th.idTH, th.category, th.name, th.address, th.ExpectedPrice, th.url, th.phoneNumber, th.yearBuilt, u.name FROM TemporaryHousing AS th JOIN Users AS u ON th.idOwner = u.idUser JOIN HasKeywords AS hk ON th.idTH=hk.idTH JOIN Keywords AS k ON hk.idKeywords=k.idKeywords WHERE ");
+			query.append("SELECT DISTINCT th.idTH, th.category, th.name, th.address, th.expectedPrice, th.url, th.phoneNumber, th.yearBuilt, u.name FROM TemporaryHousing AS th JOIN Users AS u ON th.idOwner = u.idUser JOIN HasKeywords AS hk ON th.idTH=hk.idTH JOIN Keywords AS k ON hk.idKeywords=k.idKeywords WHERE ");
 			boolean addAnd = false;
 			if (priceRange != null && !priceRange.equalsIgnoreCase("N/A")) {
 				String[] rangeSplit = priceRange.split("-");
-				query.append(" th.ExpectedPrice >= ");
+				query.append(" th.expectedPrice >= ");
 				query.append(rangeSplit[0]);
 				query.append(" AND ");
-				query.append(" th.ExpectedPrice <= ");
+				query.append(" th.expectedPrice <= ");
 				query.append(rangeSplit[1]);
 				query.append(" ");
 				addAnd = true;
@@ -268,7 +267,7 @@ public class CommandLineInterface {
 				System.out.println("Category: " + rs.getString("th.category"));
 				System.out.println("Name: " + rs.getString("th.name"));
 				System.out.println("Address: " + rs.getString("th.address"));
-				System.out.println("Price: " + rs.getString("th.ExpectedPrice"));
+				System.out.println("Price: " + rs.getString("th.expectedPrice"));
 				System.out.println("URL: " + rs.getString("th.url"));
 				System.out.println("Phone Number: " + rs.getString("th.phoneNumber"));
 				System.out.println("Year Built: " + rs.getString("th.yearBuilt"));
@@ -277,6 +276,10 @@ public class CommandLineInterface {
 			}
 			return;
 		}
+	}
+	
+	public static void handleFavorites() {
+		// TODO
 	}
 	
 	public static void handleGiveFeedback() throws Exception {
@@ -378,7 +381,7 @@ public class CommandLineInterface {
 		System.out.println(OWNED_HOUSING_CODE + ". Owned Housing (Create And Update Temp. Housing)");
 		System.out.println(MAKE_RESERVATION_CODE + ". Make Reservation (NOT FUNCTIONAL)");
 		System.out.println(RECORD_STAY_CODE + ". Record A Stay (NOT FUNCTIONAL)");
-		System.out.println(MANAGE_FAVORITES_CODE + ". Manage Favorites (NOT FUNCTIONAL)");
+		System.out.println(MANAGE_FAVORITES_CODE + ". Manage Favorites");
 		System.out.println(GIVE_FEEDBACK_CODE + ". Give Feedback");
 		System.out.println(MANAGE_TRUSTED_USERS_CODE + ". Manage Trusted Users (NOT FUNCTIONAL)");
 		System.out.println(BROWSE_FOR_HOUSING_CODE + ". Browse Housing");
