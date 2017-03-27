@@ -224,7 +224,7 @@ public class UpdateOwnedTemporaryHousingPage {
 				if(errorMessage != null){
 					System.out.println("Period Given Is Not Valid");
 					System.out.println(errorMessage);
-					continue;
+					return null;
 				}
 
 				selectedAvailablePeriod.setTemporaryHousing(HousingToUpdate);
@@ -280,7 +280,7 @@ public class UpdateOwnedTemporaryHousingPage {
 		printSelectedTemporaryHousing();
 
 		System.out.println(UPDATE_TH_CODE + ". Update Main Housing Info");
-		System.out.println(ADD_AN_AVAILABLE_PERIOD_CODE + ". Add an Available Date");
+		System.out.println(ADD_AN_AVAILABLE_PERIOD_CODE + ". Add an Available Date (NON-FUNCTIONAL)");
 		System.out.println(UPDATE_AN_AVAILABLE_PERIOD_CODE + ". Edit an Available Date");
 		System.out.println(DELETE_AN_AVAILABLE_PERIOD_CODE + ". Delete an Available Date");
 		System.out.println(EXIT_CODE + ". Back");

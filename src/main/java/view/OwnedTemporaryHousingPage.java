@@ -10,6 +10,7 @@ import main.java.models.base.ObjectCollection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 
 /**
@@ -78,7 +79,9 @@ public class OwnedTemporaryHousingPage {
 				System.out.print("Year Built (Ex. 2007):");
 				newTemporaryHousing.setYearBuilt(Input.readLine());
 				System.out.print("Expected Price (Ex. 3640.05):");
-				newTemporaryHousing.setYearBuilt(Input.readLine());
+				String response = Input.readLine();
+				BigDecimal amount = new BigDecimal(response);
+				newTemporaryHousing.setExpectedPrice(amount);
 				newTemporaryHousing.setOwner(UserManager.getCurrentUser());
 			}catch (Exception e){
 				System.out.println(CommandLineInterface.INVALID_USER_RESPONSE);
