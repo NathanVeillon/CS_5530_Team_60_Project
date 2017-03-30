@@ -26,7 +26,8 @@ public class User extends BaseObject {
 			new Attribute("IsAdmin", Integer.class, "isAdmin", false),
 
 			new Attribute("OwnedTemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, ONE_TO_MANY),
-			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY)
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY),
+			new Attribute("Visits", Visit.class, "Visit", false,ONE_TO_MANY)
 	);
 	public final static String TableName = "Users";
 
@@ -50,6 +51,7 @@ public class User extends BaseObject {
 
 	public ObjectCollection OwnedTemporaryHousing;
 	public ObjectCollection Reservations;
+	public ObjectCollection Visits;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -116,6 +118,28 @@ public class User extends BaseObject {
 	}
 
 	public ObjectCollection getReservations() throws Exception {
+		if(this.Reservations == null && !IsCreating){
+			String query = "SELECT * FROM "+ Reservation.TableName+" " +
+					"JOIN ("+Period.TableName+", "+TemporaryHousing.TableName+") " +
+					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idTH = "+TemporaryHousing.TableName+".idTH) " +
+					"WHERE "+Reservation.TableName+".idUser = ?;";
+			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+			statement.setInt(1, getId());
+			ReservationQuery query1 = new ReservationQuery();
+			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			setReservations(collection);
+		}
+		return (ObjectCollection) this.getField("Reservations");
+	}
+
+	public User setVisits(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != Reservation.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("Reservations", collection);
+		return this;
+	}
+
+	public ObjectCollection getVisits() throws Exception {
 		if(this.Reservations == null && !IsCreating){
 			String query = "SELECT * FROM "+ Reservation.TableName+" " +
 					"JOIN ("+Period.TableName+", "+TemporaryHousing.TableName+") " +

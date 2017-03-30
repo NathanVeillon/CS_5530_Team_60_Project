@@ -134,4 +134,56 @@ public class Period extends BaseObject {
 
 		return validateBasicPeriod();
 	}
+
+	public String validateVisit(ObjectCollection userReservations){
+		try {
+			boolean existsWithinTotally = false;
+
+			for (BaseObject object: userReservations){
+				Reservation reservation = (Reservation)object;
+				Period period = reservation.getPeriod();
+
+				existsWithinTotally = (this.getFrom().after(period.getFrom()) || this.getFrom().equals(period.getFrom()))
+						&& (this.getTo().before(period.getTo()) || this.getTo().equals(period.getTo()));
+				if(existsWithinTotally) {
+					break;
+				}
+
+			}
+
+			if(!existsWithinTotally)
+				return "Does Not Exist Within One Reservation";
+		}catch (Exception e){
+			return "Error: "+e.getMessage();
+		}
+
+
+		return validateBasicPeriod();
+	}
+
+	public String validateVisit(TemporaryHousing temporaryHousing){
+		try {
+			ObjectCollection userReservations = temporaryHousing.getCurrentUserReservations();
+			boolean existsWithinTotally = false;
+
+			for (BaseObject object: userReservations){
+				Reservation reservation = (Reservation)object;
+				Period period = reservation.getPeriod();
+
+				existsWithinTotally = (this.getFrom().after(period.getFrom()) || this.getFrom().equals(period.getFrom()))
+						&& (this.getTo().before(period.getTo()) || this.getTo().equals(period.getTo()));
+				if(existsWithinTotally) {
+					break;
+				}
+
+			}
+
+			if(!existsWithinTotally)
+				return "Does Not Exist Within One Reservation";
+		}catch (Exception e){
+			return "Error: "+e.getMessage();
+		}
+
+		return validateBasicPeriod();
+	}
 }

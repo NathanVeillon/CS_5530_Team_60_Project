@@ -1,6 +1,7 @@
 package main.java.models;
 
 import main.java.managers.ConnectionManager;
+import main.java.managers.UserManager;
 import main.java.models.base.Attribute;
 import main.java.models.base.BaseObject;
 import main.java.models.base.ObjectCollection;
@@ -159,6 +160,22 @@ public class TemporaryHousing extends BaseObject {
 					"WHERE "+Reservation.TableName+".idTH = ?;";
 			PreparedStatement statement = ConnectionManager.prepareStatement(query);
 			statement.setInt(1, getId());
+			ReservationQuery query1 = new ReservationQuery();
+			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			setReservations(collection);
+		}
+		return (ObjectCollection) this.getField("AvailablePeriods");
+	}
+
+	public ObjectCollection getCurrentUserReservations() throws Exception {
+		if(this.Reservations == null && !IsCreating){
+			String query = "SELECT * FROM "+ Reservation.TableName+" " +
+					"JOIN ("+Period.TableName+") " +
+					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod) " +
+					"WHERE "+Reservation.TableName+".idTH = ? AND "+Reservation.TableName+".idUser = ?;";
+			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+			statement.setInt(1, getId());
+			statement.setInt(2, UserManager.getCurrentUser().getId());
 			ReservationQuery query1 = new ReservationQuery();
 			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
 			setReservations(collection);
