@@ -1,12 +1,10 @@
 package main.java.models;
 
 import main.java.managers.ConnectionManager;
-import main.java.models.base.Attribute;
-import main.java.models.base.BaseObject;
-import main.java.models.base.ObjectCollection;
+import main.java.models.base.*;
 
 import java.sql.PreparedStatement;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static main.java.models.base.Attribute.ForeignRelationshipType.*;
@@ -25,15 +23,33 @@ public class User extends BaseObject {
 			new Attribute("PhoneNumber", String.class, "phoneNumber", false),
 			new Attribute("IsAdmin", Integer.class, "isAdmin", false),
 
-			new Attribute("OwnedTemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, ONE_TO_MANY),
-			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY),
-			new Attribute("Visits", Visit.class, "Visit", false,ONE_TO_MANY)
+			new Attribute("OwnedTemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "OwnerId"))),
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "UserId"))),
+			new Attribute("Visits", Visit.class, "Visit", false,ONE_TO_MANY,
+			  		Arrays.asList(new AttributeRelationship("Id", "UserId")))
 	);
+
+	private static final Map<String, Attribute> AttributeMap;
+	static {
+		Map<String, Attribute> aMap = new HashMap<>();
+		for (Attribute attr: Attributes) {
+			aMap.put(attr.JavaFieldName, attr);
+		}
+		AttributeMap = Collections.unmodifiableMap(aMap);
+	}
+
 	public final static String TableName = "Users";
 
 	@Override
 	public List<Attribute> getAttributes() {
 		return Attributes;
+	}
+
+	@Override
+	public Map<String, Attribute> getAttributeMap() {
+		return AttributeMap;
 	}
 
 	@Override
@@ -119,15 +135,15 @@ public class User extends BaseObject {
 
 	public ObjectCollection getReservations() throws Exception {
 		if(this.Reservations == null && !IsCreating){
-			String query = "SELECT * FROM "+ Reservation.TableName+" " +
-					"JOIN ("+Period.TableName+", "+TemporaryHousing.TableName+") " +
-					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idTH = "+TemporaryHousing.TableName+".idTH) " +
-					"WHERE "+Reservation.TableName+".idUser = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getId());
+//			String query = "SELECT * FROM "+ Reservation.TableName+" " +
+//					"JOIN ("+Period.TableName+", "+TemporaryHousing.TableName+") " +
+//					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idTH = "+TemporaryHousing.TableName+".idTH) " +
+//					"WHERE "+Reservation.TableName+".idUser = ?;";
+//			PreparedStatement statement = ConnectionManager.prepareStatement(query);
+//			statement.setInt(1, getId());
 			ReservationQuery query1 = new ReservationQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setReservations(collection);
+			query1.populateRelation("Period").populateRelation("TemporaryHousing").filterByField("UserId", this.getId());
+			setReservations(query1.find());
 		}
 		return (ObjectCollection) this.getField("Reservations");
 	}
@@ -140,18 +156,16 @@ public class User extends BaseObject {
 	}
 
 	public ObjectCollection getVisits() throws Exception {
-		if(this.Reservations == null && !IsCreating){
-			String query = "SELECT * FROM "+ Reservation.TableName+" " +
-					"JOIN ("+Period.TableName+", "+TemporaryHousing.TableName+") " +
-					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idTH = "+TemporaryHousing.TableName+".idTH) " +
-					"WHERE "+Reservation.TableName+".idUser = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getId());
-			ReservationQuery query1 = new ReservationQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setReservations(collection);
+		if(this.Visits == null && !IsCreating) {
+			VisitQuery query = new VisitQuery();
+			setVisits(query.populateRelation("Period")
+					.populateRelation("TemporaryHousing")
+					.filterByField("UserId", this.getId())
+					.find());
+
 		}
-		return (ObjectCollection) this.getField("Reservations");
+
+		return (ObjectCollection) this.getField("Visits");
 	}
 
 	public User setReservations(ObjectCollection collection) throws Exception {

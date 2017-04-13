@@ -3,15 +3,13 @@ package main.java.models.base;
 import main.java.managers.ConnectionManager;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public abstract class BaseObject implements Comparable{
 
 	public abstract String getTableName();
 	public abstract List<Attribute> getAttributes();
+	public abstract Map<String, Attribute> getAttributeMap();
 
 	public HashMap<String, Attribute> ModifiedAttributes = new HashMap<>();
 	public boolean isModified(){
@@ -62,12 +60,9 @@ public abstract class BaseObject implements Comparable{
 	}
 
 	public Attribute getRelatedAttr(String fieldName){
-		for (Attribute attribute: getAttributes()) {
-			if(attribute.JavaFieldName.equals(fieldName)){
-				return attribute;
-			}
+		if(getAttributeMap().containsKey(fieldName)){
+			return getAttributeMap().get(fieldName);
 		}
-
 		return null;
 	}
 
@@ -81,7 +76,7 @@ public abstract class BaseObject implements Comparable{
 		return null;
 	}
 
-	public List<Attribute> getRelatedForeignEnitityAttributes(){
+	public List<Attribute> getRelatedForeignEntityAttributes(){
 		List<Attribute> attributes = new ArrayList<>();
 		for (Attribute attribute: getAttributes()) {
 			if(attribute.isForeignEntity())
@@ -274,7 +269,7 @@ public abstract class BaseObject implements Comparable{
 		PreparedStatement stmnt = ConnectionManager.prepareStatement(str);
 
 		int i = 1;
-		int j = attributes.size()+1 - getRelatedForeignEnitityAttributes().size();
+		int j = attributes.size()+1 - getRelatedForeignEntityAttributes().size();
 		for (Attribute attribute: attributes) {
 			if(attribute.isForeignEntity())
 				continue;

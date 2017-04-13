@@ -3,12 +3,13 @@ package main.java.models;
 import main.java.managers.ConnectionManager;
 import main.java.managers.UserManager;
 import main.java.models.base.Attribute;
+import main.java.models.base.AttributeRelationship;
 import main.java.models.base.BaseObject;
 import main.java.models.base.ObjectCollection;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static main.java.models.base.Attribute.ForeignRelationshipType.*;
@@ -29,15 +30,33 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("ExpectedPrice", BigDecimal.class, "expectedPrice", false),
 			new Attribute("OwnerId", Integer.class, "idOwner", false),
 
-			new Attribute("Owner", User.class, "Users", false, MANY_TO_ONE),
-			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY),
-			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY)
+			new Attribute("Owner", User.class, "Users", false, MANY_TO_ONE,
+					Arrays.asList(new AttributeRelationship("OwnerId", "Id"))),
+			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId")))
 	);
+
+	private static final Map<String, Attribute> AttributeMap;
+	static {
+		Map<String, Attribute> aMap = new HashMap<>();
+		for (Attribute attr: Attributes) {
+			aMap.put(attr.JavaFieldName, attr);
+		}
+		AttributeMap = Collections.unmodifiableMap(aMap);
+	}
+
 	public final static String TableName = "TemporaryHousing";
 
 	@Override
 	public List<Attribute> getAttributes() {
 		return Attributes;
+	}
+
+	@Override
+	public Map<String, Attribute> getAttributeMap() {
+		return AttributeMap;
 	}
 
 	@Override

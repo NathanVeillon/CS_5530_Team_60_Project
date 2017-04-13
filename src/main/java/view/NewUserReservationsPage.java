@@ -202,10 +202,8 @@ public class NewUserReservationsPage {
 	}
 
 	private static ObjectCollection getAllTemporaryHousing()throws Exception{
-		String stringQuery = "SELECT * FROM "+TemporaryHousing.TableName+";";
-		PreparedStatement statement = ConnectionManager.prepareStatement(stringQuery);
 		TemporaryHousingQuery query = new TemporaryHousingQuery();
-		return query.getCollectionFromObjectResult(statement.executeQuery());
+		return query.find();
 	}
 
 	private static void printMenu() {

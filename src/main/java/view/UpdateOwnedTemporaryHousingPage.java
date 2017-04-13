@@ -8,6 +8,7 @@ import main.java.models.Period;
 import main.java.models.TemporaryHousing;
 import main.java.models.TemporaryHousingQuery;
 import main.java.models.base.BaseObject;
+import main.java.models.base.FilterCriteria;
 import main.java.models.base.ObjectCollection;
 
 import java.io.BufferedReader;
@@ -267,20 +268,16 @@ public class UpdateOwnedTemporaryHousingPage {
 	}
 
 	private static TemporaryHousing getTheTemporaryHousing() throws Exception {
-		String stringQuery = "SELECT * FROM " +TemporaryHousing.TableName + " WHERE idTH = ? ;";
-		PreparedStatement statement = ConnectionManager.prepareStatement(stringQuery);
-		statement.setInt(1, HousingToUpdate.getId());
 		TemporaryHousingQuery query = new TemporaryHousingQuery();
-		ObjectCollection collection = query.getCollectionFromObjectResult(statement.executeQuery());
-		statement.close();
-		return (TemporaryHousing) collection.get(0);
+		query.filterByField("Id", HousingToUpdate.getId(), FilterCriteria.Comparison.EQUAL);
+		return query.findOne();
 	}
 
 	private static void printMenu() {
 		printSelectedTemporaryHousing();
 
 		System.out.println(UPDATE_TH_CODE + ". Update Main Housing Info");
-		System.out.println(ADD_AN_AVAILABLE_PERIOD_CODE + ". Add an Available Date (NON-FUNCTIONAL)");
+		System.out.println(ADD_AN_AVAILABLE_PERIOD_CODE + ". Add an Available Date");
 		System.out.println(UPDATE_AN_AVAILABLE_PERIOD_CODE + ". Edit an Available Date");
 		System.out.println(DELETE_AN_AVAILABLE_PERIOD_CODE + ". Delete an Available Date");
 		System.out.println(EXIT_CODE + ". Back");

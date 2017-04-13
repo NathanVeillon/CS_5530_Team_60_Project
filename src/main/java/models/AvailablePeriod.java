@@ -2,11 +2,12 @@ package main.java.models;
 
 import main.java.managers.ConnectionManager;
 import main.java.models.base.Attribute;
+import main.java.models.base.AttributeRelationship;
 import main.java.models.base.BaseObject;
 import main.java.models.base.ObjectCollection;
 
 import java.sql.PreparedStatement;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static main.java.models.base.Attribute.ForeignRelationshipType.*;
@@ -21,14 +22,30 @@ public class AvailablePeriod extends BaseObject {
 			new Attribute("PeriodId", Integer.class, "idPeriod", true),
 			new Attribute("PricePerNight", Integer.class, "pricePerNight", false),
 
-			new Attribute("TemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, MANY_TO_ONE),
-			new Attribute("Period", Period.class, "Period", false, MANY_TO_ONE)
+			new Attribute("TemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, MANY_TO_ONE ,
+					Arrays.asList(new AttributeRelationship("TemporaryHousingId", "Id"))),
+			new Attribute("Period", Period.class, "Period", false, MANY_TO_ONE,
+					Arrays.asList(new AttributeRelationship("PeriodId", "Id")))
 	);
+
+	private static final Map<String, Attribute> AttributeMap;
+	static {
+		Map<String, Attribute> aMap = new HashMap<>();
+		for (Attribute attr: Attributes) {
+			aMap.put(attr.JavaFieldName, attr);
+		}
+		AttributeMap = Collections.unmodifiableMap(aMap);
+	}
 	public final static String TableName = "Available";
 
 	@Override
 	public List<Attribute> getAttributes() {
 		return Attributes;
+	}
+
+	@Override
+	public Map<String, Attribute> getAttributeMap() {
+		return AttributeMap;
 	}
 
 	@Override

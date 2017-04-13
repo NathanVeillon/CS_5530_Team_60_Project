@@ -1,9 +1,10 @@
 package main.java.models;
 
 import main.java.models.base.Attribute;
+import main.java.models.base.AttributeRelationship;
 import main.java.models.base.BaseObject;
 
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static main.java.models.base.Attribute.ForeignRelationshipType.MANY_TO_ONE;
@@ -19,15 +20,33 @@ public class Visit extends BaseObject {
 			new Attribute("PeriodId", Integer.class, "idPeriod", true),
 			new Attribute("Cost", Integer.class, "cost", false),
 
-			new Attribute("User", User.class, "User", false, MANY_TO_ONE),
-			new Attribute("TemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, MANY_TO_ONE),
-			new Attribute("Period", Period.class, "Period", false, MANY_TO_ONE)
+			new Attribute("User", User.class, "User", false, MANY_TO_ONE,
+					Arrays.asList(new AttributeRelationship("UserId", "Id"))),
+			new Attribute("TemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, MANY_TO_ONE,
+					Arrays.asList(new AttributeRelationship("TemporaryHousingId", "Id"))),
+			new Attribute("Period", Period.class, "Period", false, MANY_TO_ONE,
+					Arrays.asList(new AttributeRelationship("PeriodId", "Id")))
 	);
+
+	private static final Map<String, Attribute> AttributeMap;
+	static {
+		Map<String, Attribute> aMap = new HashMap<>();
+		for (Attribute attr: Attributes) {
+			aMap.put(attr.JavaFieldName, attr);
+		}
+		AttributeMap = Collections.unmodifiableMap(aMap);
+	}
+
 	public final static String TableName = "Reserve";
 
 	@Override
 	public List<Attribute> getAttributes() {
 		return Attributes;
+	}
+
+	@Override
+	public Map<String, Attribute> getAttributeMap() {
+		return AttributeMap;
 	}
 
 	@Override

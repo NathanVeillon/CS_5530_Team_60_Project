@@ -1,11 +1,12 @@
 package main.java.models;
 
 import main.java.models.base.Attribute;
+import main.java.models.base.AttributeRelationship;
 import main.java.models.base.BaseObject;
 import main.java.models.base.ObjectCollection;
 
 import java.sql.Date;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static main.java.models.base.Attribute.ForeignRelationshipType.*;
@@ -20,14 +21,31 @@ public class Period extends BaseObject {
 			new Attribute("To", Date.class, "to", false),
 			new Attribute("From", Date.class, "from", false),
 
-			new Attribute("AvailablePeriods", User.class, "Available", false, ONE_TO_MANY),
-			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY)
+			new Attribute("AvailablePeriods", User.class, "Available", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "PeriodId"))),
+			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "PeriodId")))
 	);
+
+	private static final Map<String, Attribute> AttributeMap;
+	static {
+		Map<String, Attribute> aMap = new HashMap<>();
+		for (Attribute attr: Attributes) {
+			aMap.put(attr.JavaFieldName, attr);
+		}
+		AttributeMap = Collections.unmodifiableMap(aMap);
+	}
+
 	public final static String TableName = "Period";
 
 	@Override
 	public List<Attribute> getAttributes() {
 		return Attributes;
+	}
+
+	@Override
+	public Map<String, Attribute> getAttributeMap() {
+		return AttributeMap;
 	}
 
 	@Override
