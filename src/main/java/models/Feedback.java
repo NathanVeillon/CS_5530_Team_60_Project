@@ -39,7 +39,7 @@ public class Feedback extends BaseObject{
         AttributeMap = Collections.unmodifiableMap(aMap);
     }
 
-    public final static String TableName = "Reserve";
+    public final static String TableName = "feedback";
 
     @Override
     public List<Attribute> getAttributes() {
