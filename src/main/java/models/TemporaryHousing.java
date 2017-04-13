@@ -37,6 +37,8 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
 			new Attribute("Feedback", Feedback.class, "feedback", false,ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
+			new Attribute("TemporaryHousingKeywordMaps", User.class, "HasKeywords", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId")))
 	);
 
@@ -81,6 +83,7 @@ public class TemporaryHousing extends BaseObject {
 	public ObjectCollection AvailablePeriods;
 	public ObjectCollection Reservations;
 	public ObjectCollection Feedback;
+	public ObjectCollection TemporaryHousingKeywordMaps;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -266,5 +269,35 @@ public class TemporaryHousing extends BaseObject {
 			throw new Exception("The Collection had An Invalid Class");
 		setField("Feedback", collection);
 		return this;
+	}
+
+	public ObjectCollection getTemporaryHousingKeywordMaps() throws Exception {
+		if(TemporaryHousingKeywordMaps == null && !IsCreating){
+			TemporaryHousingKeywordMapQuery query = new TemporaryHousingKeywordMapQuery();
+			query.populateRelation("Keyword").filterByField("TemporaryHousingId", this.getId());
+			setTemporaryHousingKeywordMaps(query.find());
+		}
+
+		return (ObjectCollection) this.getField("TemporaryHousingKeywordMaps");
+	}
+
+	public TemporaryHousing setTemporaryHousingKeywordMaps(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != TemporaryHousingKeywordMap.class)
+			throw new Exception("The Collection had An Invalid Class");
+		this.setField("TemporaryHousingKeywordMaps", collection);
+		return this;
+	}
+
+	public ObjectCollection getKeywords() throws Exception{
+		ObjectCollection keywordMaps = getTemporaryHousingKeywordMaps();
+		ObjectCollection relatedKeywords = new ObjectCollection();
+
+		for (BaseObject object: keywordMaps) {
+			TemporaryHousingKeywordMap keywordMap = (TemporaryHousingKeywordMap) object;
+
+			relatedKeywords.add(keywordMap.getKeyword());
+		}
+
+		return relatedKeywords;
 	}
 }

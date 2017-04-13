@@ -193,6 +193,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 
 						switch (attr.ForeignEntityType){
 							case ONE_TO_MANY:
+							case MANY_TO_MANY:
 								ObjectCollection foreignCollection = (ObjectCollection) newItem.getField(attr.JavaFieldName);
 								foreignCollection = (foreignCollection == null) ? new ObjectCollection() : foreignCollection;
 								BaseObject aForiegnItem = (foreignCollection.isEmpty()) ? objectClass.newInstance() : foreignCollection.get(0);

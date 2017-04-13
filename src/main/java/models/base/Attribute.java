@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class Attribute {
 
-	public enum ForeignRelationshipType {ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE};
+	public enum ForeignRelationshipType {ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY};
 
 	public String JavaFieldName;
 	public Class<?> JavaType;
