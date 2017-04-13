@@ -35,7 +35,7 @@ public class TemporaryHousingKeywordMap extends BaseObject{
         AttributeMap = Collections.unmodifiableMap(aMap);
     }
 
-    public final static String TableName = "Keywords";
+    public final static String TableName = "HasKeywords";
 
     @Override
     public List<Attribute> getAttributes() {
