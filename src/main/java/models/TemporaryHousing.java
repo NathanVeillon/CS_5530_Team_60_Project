@@ -35,6 +35,8 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
 			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
+			new Attribute("Feedback", Feedback.class, "feedback", false,ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId")))
 	);
 
@@ -78,6 +80,7 @@ public class TemporaryHousing extends BaseObject {
 	public User Owner;
 	public ObjectCollection AvailablePeriods;
 	public ObjectCollection Reservations;
+	public ObjectCollection Feedback;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -245,6 +248,23 @@ public class TemporaryHousing extends BaseObject {
 	public TemporaryHousing setOwner(User owner) throws Exception {
 		setField("OwnerId", owner.getId());
 		setField("Owner", owner);
+		return this;
+	}
+
+	public ObjectCollection getFeedback() throws Exception {
+		if(this.Feedback == null && !IsCreating) {
+			FeedbackQuery query = new FeedbackQuery();
+			query.populateRelation("TemporaryHousing").filterByField("UserId", this.getId());
+			setFeedback(query.find());
+		}
+
+		return (ObjectCollection) this.getField("Visits");
+	}
+
+	public TemporaryHousing setFeedback(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != Feedback.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("Feedback", collection);
 		return this;
 	}
 }
