@@ -20,7 +20,7 @@ public class Keyword extends BaseObject{
             new Attribute("Word", String.class, "word", false),
             new Attribute("Language", String.class, "language", false),
 
-            new Attribute("TemporaryHousingKeywordMaps", User.class, "HasKeywords", false, ONE_TO_MANY,
+            new Attribute("TemporaryHousingKeywordMaps", TemporaryHousingKeywordMap.class, "HasKeywords", false, ONE_TO_MANY,
                     Arrays.asList(new AttributeRelationship("Id", "KeywordId")))
     );
 

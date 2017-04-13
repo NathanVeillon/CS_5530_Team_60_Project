@@ -38,7 +38,7 @@ public class TemporaryHousing extends BaseObject {
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
 			new Attribute("Feedback", Feedback.class, "feedback", false,ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
-			new Attribute("TemporaryHousingKeywordMaps", User.class, "HasKeywords", false, ONE_TO_MANY,
+			new Attribute("TemporaryHousingKeywordMaps", TemporaryHousingKeywordMap.class, "HasKeywords", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId")))
 	);
 

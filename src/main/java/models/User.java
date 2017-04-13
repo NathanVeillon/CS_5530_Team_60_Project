@@ -30,6 +30,8 @@ public class User extends BaseObject {
 			new Attribute("Visits", Visit.class, "Visit", false,ONE_TO_MANY,
 			  		Arrays.asList(new AttributeRelationship("Id", "UserId"))),
 			new Attribute("Feedback", Feedback.class, "feedback", false,ONE_TO_MANY,
+						  Arrays.asList(new AttributeRelationship("Id", "UserId"))),
+			new Attribute("FeedbackRatings", Feedback.class, "Rate", false,ONE_TO_MANY,
 						  Arrays.asList(new AttributeRelationship("Id", "UserId")))
 	);
 
@@ -71,6 +73,7 @@ public class User extends BaseObject {
 	public ObjectCollection Reservations;
 	public ObjectCollection Visits;
 	public ObjectCollection Feedback;
+	public ObjectCollection FeedbackRatings;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -184,7 +187,7 @@ public class User extends BaseObject {
 	public ObjectCollection getFeedback() throws Exception {
 		if(this.Feedback == null && !IsCreating) {
 			FeedbackQuery query = new FeedbackQuery();
-			query.populateRelation("TemporaryHousing").filterByField("UserId", this.getId());
+			query.populateRelation("FeedbackRatings").populateRelation("TemporaryHousing").filterByField("UserId", this.getId());
 			setFeedback(query.find());
 
 		}
@@ -196,6 +199,24 @@ public class User extends BaseObject {
 		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != Feedback.class)
 			throw new Exception("The Collection had An Invalid Class");
 		setField("Feedback", collection);
+		return this;
+	}
+
+	public ObjectCollection getFeedbackRatings() throws Exception {
+		if(this.FeedbackRatings == null && !IsCreating) {
+			FeedbackRatingQuery query = new FeedbackRatingQuery();
+			query.populateRelation("Feedback").filterByField("UserId", this.getId());
+			setFeedbackRatings(query.find());
+
+		}
+
+		return (ObjectCollection) this.getField("Visits");
+	}
+
+	public User setFeedbackRatings(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != FeedbackRating.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("FeedbackRatings", collection);
 		return this;
 	}
 

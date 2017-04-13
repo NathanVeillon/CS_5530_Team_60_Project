@@ -21,7 +21,7 @@ public class Period extends BaseObject {
 			new Attribute("To", Date.class, "to", false),
 			new Attribute("From", Date.class, "from", false),
 
-			new Attribute("AvailablePeriods", User.class, "Available", false, ONE_TO_MANY,
+			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "PeriodId"))),
 			new Attribute("Reservations", Reservation.class, "Reservation", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "PeriodId")))

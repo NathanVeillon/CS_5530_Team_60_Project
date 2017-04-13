@@ -20,9 +20,9 @@ public class TemporaryHousingKeywordMap extends BaseObject{
             new Attribute("TemporaryHousingId", Integer.class, "idTH", true),
             new Attribute("KeywordId", Integer.class, "idKeywords", true),
 
-            new Attribute("TemporaryHousing", User.class, "TemporaryHousing", false, MANY_TO_ONE,
+            new Attribute("TemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, MANY_TO_ONE,
                     Arrays.asList(new AttributeRelationship("TemporaryHousingId", "Id"))),
-            new Attribute("Keyword", User.class, "Keywords", false, MANY_TO_ONE,
+            new Attribute("Keyword", Keyword.class, "Keywords", false, MANY_TO_ONE,
                           Arrays.asList(new AttributeRelationship("KeywordId", "Id")))
     );
 

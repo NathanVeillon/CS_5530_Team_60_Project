@@ -3,6 +3,7 @@ package main.java.models;
 import main.java.models.base.Attribute;
 import main.java.models.base.AttributeRelationship;
 import main.java.models.base.BaseObject;
+import main.java.models.base.ObjectCollection;
 
 
 import java.sql.Date;
@@ -10,6 +11,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static main.java.models.base.Attribute.ForeignRelationshipType.MANY_TO_ONE;
+import static main.java.models.base.Attribute.ForeignRelationshipType.ONE_TO_MANY;
 
 /**
  * Created by Student Nathan on 4/13/2017.
@@ -27,7 +29,9 @@ public class Feedback extends BaseObject{
             new Attribute("User", User.class, "User", false, MANY_TO_ONE,
                     Arrays.asList(new AttributeRelationship("UserId", "Id"))),
             new Attribute("TemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, MANY_TO_ONE,
-                    Arrays.asList(new AttributeRelationship("TemporaryHousingId", "Id")))
+                    Arrays.asList(new AttributeRelationship("TemporaryHousingId", "Id"))),
+            new Attribute("FeedbackRatings", FeedbackRating.class, "Rate", false, ONE_TO_MANY,
+                    Arrays.asList(new AttributeRelationship("Id", "FeedbackId")))
     );
 
     private static final Map<String, Attribute> AttributeMap;
@@ -65,6 +69,7 @@ public class Feedback extends BaseObject{
 
     public User User;
     public TemporaryHousing TemporaryHousing;
+    public ObjectCollection FeedbackRatings;
 
     public Integer getId() throws Exception {
         return (Integer) this.getField("Id");
@@ -121,9 +126,9 @@ public class Feedback extends BaseObject{
     }
 
     public User getUser() throws Exception {
-        if(TemporaryHousing == null && !IsCreating){
+        if(User == null && !IsCreating){
             UserQuery query = new UserQuery();
-            query.filterByField("Id", this.getUserId());
+            query.populateRelation("Visits").populateRelation("FeedbackRatings").filterByField("Id", this.getUserId());
             setUser(query.findOne());
         }
 
@@ -147,6 +152,23 @@ public class Feedback extends BaseObject{
 
     public Feedback setTemporaryHousing(main.java.models.TemporaryHousing temporaryHousing) throws Exception {
         this.setField("TemporaryHousing", temporaryHousing);
+        return this;
+    }
+
+    public ObjectCollection getFeedbackRatings() throws Exception {
+        if(this.FeedbackRatings == null && !IsCreating) {
+            FeedbackRatingQuery query = new FeedbackRatingQuery();
+            query.populateRelation("User").filterByField("FeedbackId", this.getId());
+            setFeedbackRatings(query.find());
+        }
+
+        return (ObjectCollection) this.getField("Visits");
+    }
+
+    public Feedback setFeedbackRatings(ObjectCollection collection) throws Exception {
+        if(collection != null && collection.size() > 0 && collection.get(0).getClass() != FeedbackRating.class)
+            throw new Exception("The Collection had An Invalid Class");
+        setField("FeedbackRatings", collection);
         return this;
     }
 }
