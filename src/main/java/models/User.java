@@ -32,7 +32,11 @@ public class User extends BaseObject {
 			new Attribute("Feedback", Feedback.class, "feedback", false,ONE_TO_MANY,
 						  Arrays.asList(new AttributeRelationship("Id", "UserId"))),
 			new Attribute("FeedbackRatings", Feedback.class, "Rate", false,ONE_TO_MANY,
-						  Arrays.asList(new AttributeRelationship("Id", "UserId")))
+						  Arrays.asList(new AttributeRelationship("Id", "UserId"))),
+			new Attribute("SourceUserTrust", UserTrust.class, "Trust", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "SourceUserId"))),
+			new Attribute("TargetUserTrust", UserTrust.class, "Trust", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "TargetUserId")))
 	);
 
 	private static final Map<String, Attribute> AttributeMap;
@@ -74,6 +78,8 @@ public class User extends BaseObject {
 	public ObjectCollection Visits;
 	public ObjectCollection Feedback;
 	public ObjectCollection FeedbackRatings;
+	public ObjectCollection SourceUserTrust;
+	public ObjectCollection TargetUserTrust;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -210,13 +216,49 @@ public class User extends BaseObject {
 
 		}
 
-		return (ObjectCollection) this.getField("Visits");
+		return (ObjectCollection) this.getField("FeedbackRatings");
 	}
 
 	public User setFeedbackRatings(ObjectCollection collection) throws Exception {
 		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != FeedbackRating.class)
 			throw new Exception("The Collection had An Invalid Class");
 		setField("FeedbackRatings", collection);
+		return this;
+	}
+
+	public ObjectCollection getSourceUserTrust() throws Exception {
+		if(this.SourceUserTrust == null && !IsCreating) {
+			UserTrustQuery query = new UserTrustQuery();
+			query.populateRelation("TargetUser").filterByField("SourceUserId", this.getId());
+			setSourceUserTrust(query.find());
+
+		}
+
+		return (ObjectCollection) this.getField("FeedbackRatings");
+	}
+
+	public User setSourceUserTrust(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != UserTrust.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("SourceUserTrust", collection);
+		return this;
+	}
+
+	public ObjectCollection getTargetUserTrust() throws Exception {
+		if(this.SourceUserTrust == null && !IsCreating) {
+			UserTrustQuery query = new UserTrustQuery();
+			query.populateRelation("SourceUser").filterByField("TargetUserId", this.getId());
+			setSourceUserTrust(query.find());
+
+		}
+
+		return (ObjectCollection) this.getField("TargetUserTrust");
+	}
+
+	public User setTargetUserTrust(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != UserTrust.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("TargetUserTrust", collection);
 		return this;
 	}
 
