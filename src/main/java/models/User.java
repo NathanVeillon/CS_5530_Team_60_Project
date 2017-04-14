@@ -36,7 +36,9 @@ public class User extends BaseObject {
 			new Attribute("SourceUserTrust", UserTrust.class, "Trust", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "SourceUserId"))),
 			new Attribute("TargetUserTrust", UserTrust.class, "Trust", false, ONE_TO_MANY,
-					Arrays.asList(new AttributeRelationship("Id", "TargetUserId")))
+					Arrays.asList(new AttributeRelationship("Id", "TargetUserId"))),
+			new Attribute("Favorites", Favorite.class, "Favorites", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "UserId")))
 	);
 
 	private static final Map<String, Attribute> AttributeMap;
@@ -80,6 +82,7 @@ public class User extends BaseObject {
 	public ObjectCollection FeedbackRatings;
 	public ObjectCollection SourceUserTrust;
 	public ObjectCollection TargetUserTrust;
+	public ObjectCollection Favorites;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -245,7 +248,7 @@ public class User extends BaseObject {
 	}
 
 	public ObjectCollection getTargetUserTrust() throws Exception {
-		if(this.SourceUserTrust == null && !IsCreating) {
+		if(this.TargetUserTrust == null && !IsCreating) {
 			UserTrustQuery query = new UserTrustQuery();
 			query.populateRelation("SourceUser").filterByField("TargetUserId", this.getId());
 			setSourceUserTrust(query.find());
@@ -259,6 +262,24 @@ public class User extends BaseObject {
 		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != UserTrust.class)
 			throw new Exception("The Collection had An Invalid Class");
 		setField("TargetUserTrust", collection);
+		return this;
+	}
+
+	public ObjectCollection getFavorites() throws Exception {
+		if(this.Favorites == null && !IsCreating) {
+			FavoriteQuery query = new FavoriteQuery();
+			query.populateRelation("TemporaryHousing").filterByField("UserId", this.getId());
+			setFavorites(query.find());
+
+		}
+
+		return (ObjectCollection) this.getField("Favorites");
+	}
+
+	public User setFavorites(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != Favorite.class)
+			throw new Exception("The Collection had An Invalid Class");
+		setField("Favorites", collection);
 		return this;
 	}
 

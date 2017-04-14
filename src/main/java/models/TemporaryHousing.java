@@ -39,6 +39,8 @@ public class TemporaryHousing extends BaseObject {
 			new Attribute("Feedback", Feedback.class, "feedback", false,ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
 			new Attribute("TemporaryHousingKeywordMaps", TemporaryHousingKeywordMap.class, "HasKeywords", false, ONE_TO_MANY,
+					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId"))),
+			new Attribute("Favorites", Favorite.class, "Favorites", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "TemporaryHousingId")))
 	);
 
@@ -84,6 +86,7 @@ public class TemporaryHousing extends BaseObject {
 	public ObjectCollection Reservations;
 	public ObjectCollection Feedback;
 	public ObjectCollection TemporaryHousingKeywordMaps;
+	public ObjectCollection Favorites;
 
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
@@ -299,5 +302,22 @@ public class TemporaryHousing extends BaseObject {
 		}
 
 		return relatedKeywords;
+	}
+
+	public ObjectCollection getFavorites() throws Exception {
+		if(Favorites == null && !IsCreating){
+			FavoriteQuery query = new FavoriteQuery();
+			query.populateRelation("User").filterByField("TemporaryHousingId", this.getId());
+			setTemporaryHousingKeywordMaps(query.find());
+		}
+
+		return (ObjectCollection) this.getField("Favorites");
+	}
+
+	public TemporaryHousing setFavorites(ObjectCollection collection) throws Exception {
+		if(collection != null && collection.size() > 0 && collection.get(0).getClass() != Favorite.class)
+			throw new Exception("The Collection had An Invalid Class");
+		this.setField("Favorites", collection);
+		return this;
 	}
 }
