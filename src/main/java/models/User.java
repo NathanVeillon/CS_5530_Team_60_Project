@@ -21,7 +21,7 @@ public class User extends BaseObject {
 			new Attribute("Name", String.class, "name", false),
 			new Attribute("Address", String.class, "address", false),
 			new Attribute("PhoneNumber", String.class, "phoneNumber", false),
-			new Attribute("IsAdmin", Integer.class, "isAdmin", false),
+			new Attribute("IsAdmin", Boolean.class, "isAdmin", false),
 
 			new Attribute("OwnedTemporaryHousing", TemporaryHousing.class, "TemporaryHousing", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "OwnerId"))),
@@ -73,7 +73,7 @@ public class User extends BaseObject {
 	public String Name;
 	public String Address;
 	public String PhoneNumber;
-	public Integer IsAdmin;
+	public Boolean IsAdmin;
 
 	public ObjectCollection OwnedTemporaryHousing;
 	public ObjectCollection Reservations;

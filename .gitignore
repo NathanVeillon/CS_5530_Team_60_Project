@@ -3,6 +3,9 @@
 #Intellj settings
 .idea/*
 
+#Bin
+out/
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 

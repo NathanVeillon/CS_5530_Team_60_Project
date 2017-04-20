@@ -240,7 +240,7 @@ public class TemporaryHousing extends BaseObject {
 
 	public User getOwner() throws Exception {
 		if(this.Owner == null && !IsCreating){
-			String query = "SELECT * FROM "+main.java.models.Period.TableName+" WHERE idUser = ?;";
+			String query = "SELECT * FROM "+ Period.TableName+" WHERE idUser = ?;";
 			PreparedStatement statement = ConnectionManager.prepareStatement(query);
 			statement.setInt(1, getOwnerId());
 			UserQuery query1 = new UserQuery();
