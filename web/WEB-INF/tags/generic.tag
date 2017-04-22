@@ -1,7 +1,5 @@
 <%@tag description="Overall Page template" pageEncoding="UTF-8"%>
 <%@attribute name="header" fragment="true" %>
-<%@attribute name="header-collapse" fragment="true" %>
-<%@attribute name="footer" fragment="true" %>
 <%@attribute name="title" fragment="true" %>
 
 <html>
@@ -13,16 +11,35 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/vendor/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/vendor/bootstrap-3.3.7-dist/css/bootstrap-theme.min.css" />
         <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/vendor/datatables/datatables.min.css" />
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/jumbotron-narrow.css" />
+        <%--<link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/jumbotron-narrow.css" />--%>
         <script src="${pageContext.request.contextPath}/resources/vendor/jquery/jquery-3.2.1.min.js"></script>
         <script src="${pageContext.request.contextPath}/resources/vendor/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
         <script src="${pageContext.request.contextPath}/resources/vendor/datatables/datatables.min.js"></script>
-        <script src="${pageContext.request.contextPath}/resources/js/db-uotel.js"></script>
+        <script src="${pageContext.request.contextPath}/resources/js/sdk.js"></script>
 
         <style>
 
             .page-title{
                 margin-bottom: 15px;
+            }
+
+            .btn-column{
+                display: flex;
+                flex-direction: column;
+            }
+
+            #body{
+                margin: 5px 0;
+            }
+
+            .btn-column > .btn{
+                margin: 5px 0;
+            }
+
+            .footer-flex{
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
             }
         </style>
     </head>
@@ -39,13 +56,12 @@
                             <span class="icon-bar"></span>
                         </button>
                         <a class="navbar-brand" href="${pageContext.request.contextPath}\">U-otel</a>
-                        <jsp:invoke fragment="header"/>
                     </div>
 
 
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="nav-collapse-1">
-                        <jsp:invoke fragment="header-collapse"/>
+                        <jsp:invoke fragment="header"/>
                     </div>
 
                 </div><!-- /.container-fluid -->
@@ -57,9 +73,13 @@
             <div id="body">
                 <jsp:doBody/>
             </div>
-            <footer class="footer" id="pagefooter">
-                <jsp:invoke fragment="footer"/>
-            </footer>
+
+            <hr/>
+            <div class="row">
+                <footer class="footer" id="pagefooter">
+                    <p id="copyright">&copy; 1927, Future Bits When There Be Bits Inc.</p>
+                </footer>
+            </div>
         </div>
     </body>
 </html>

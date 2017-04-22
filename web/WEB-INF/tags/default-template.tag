@@ -10,34 +10,27 @@
     }
 %>
 
-<style>
-    .navbar-toggle .icon-bar {
-        display: block;
-        width: 22px;
-        height: 2px;
-        background-color: #cccccc;
-        border-radius: 1px;
-    }
-</style>
-
 <t:generic>
-    <jsp:attribute name="header"></jsp:attribute>
-    <jsp:attribute name="header-collapse">
-                        <ul class="nav navbar-nav nav-pills">
-                            <li role="presentation" id="hdrReservations" ><a href="#">Reservations</a></li>
-                            <li role="presentation" id="hdrVisits" ><a href="#">Visits</a></li>
-                            <li role="presentation" id="hdrOwnedHousing"><a href="#">Owned Housing</a></li>
-                        </ul>
+    <jsp:attribute name="header">
+        <ul class="nav navbar-nav nav-pills header-links">
+            <li role="presentation" id="hdrReservations" ><a href="/reservations.jsp">Reservations</a></li>
+            <li role="presentation" id="hdrVisits" ><a href="/visits.jsp">Visits</a></li>
+            <li role="presentation" id="hdrOwnedHousing"><a href="/owned-housing.jsp">Owned Housing</a></li>
+        </ul>
 
-                        <p class="navbar-text navbar-right">Signed in as ${pageContext.session.getAttribute("CurrentUser").getName()}. <a href="/logout.jsp" class="navbar-link">Logout</a></p>
-    </jsp:attribute>
-    <jsp:attribute name="footer">
-      <p id="copyright">&copy; 1927, Future Bits When There Be Bits Inc.</p>
+        <p class="navbar-text navbar-right">Signed in as ${pageContext.session.getAttribute("CurrentUser").getName()}. <a href="/logout.jsp" class="navbar-link">Logout</a></p>
     </jsp:attribute>
     <jsp:attribute name="title">
       <jsp:invoke fragment="defaultTitle"/>
     </jsp:attribute>
     <jsp:body>
+        <script>
+            $(".header-links > li > a").each(function (index, element) {
+				if($(this).attr("href") == window.location.pathname){
+					$(this).parent().addClass("active");
+                }
+            });
+        </script>
         <jsp:doBody/>
     </jsp:body>
 </t:generic>

@@ -84,6 +84,17 @@ public class User extends BaseObject {
 	public ObjectCollection TargetUserTrust;
 	public ObjectCollection Favorites;
 
+	public String toJson(){
+		String password = this.Password;
+		this.Password = "";
+
+		String json = super.toJson();
+
+		this.Password = password;
+
+		return json;
+	}
+
 	public Integer getId() throws Exception {
 		return (Integer) this.getField("Id");
 	}
@@ -139,12 +150,11 @@ public class User extends BaseObject {
 	}
 
 	public boolean getIsAdmin() throws Exception {
-		return ((Integer)this.getField("IsAdmin") != 0);
+		return (boolean) this.getField("IsAdmin");
 	}
 
 	public User setIsAdmin(boolean isAdmin) throws Exception {
-		int intAdmin = (isAdmin) ? 1 : 0;
-		setField("IsAdmin", intAdmin);
+		setField("IsAdmin", isAdmin);
 		return this;
 	}
 

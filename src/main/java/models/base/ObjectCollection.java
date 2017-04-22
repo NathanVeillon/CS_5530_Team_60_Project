@@ -1,6 +1,6 @@
 package main.java.models.base;
 
-import java.awt.*;
+import javax.smartcardio.ATR;
 import java.util.*;
 
 /**
@@ -26,6 +26,47 @@ public class ObjectCollection extends ArrayList<BaseObject> {
 		for (BaseObject object: this){
 			object.save();
 		}
+	}
+
+	public String toJson(){
+		StringBuilder jsonBuilder = new StringBuilder();
+
+		jsonBuilder.append("[");
+		for(BaseObject object: this){
+			if(jsonBuilder.length() > 1){
+				jsonBuilder.append(", ");
+			}
+			jsonBuilder.append(object.toJson());
+		}
+		jsonBuilder.append("]");
+
+		return jsonBuilder.toString();
+	}
+
+
+	public boolean fromFlatJsonMap(Map<String, String[]> paramMap, String keyPrepend, Attribute relatedAttribute) throws Exception{
+		if(!relatedAttribute.isForeignEntity() || relatedAttribute.ForeignEntityType != Attribute.ForeignRelationshipType.ONE_TO_MANY){
+			return false;
+		}
+
+		keyPrepend = (keyPrepend == null) ? "" : keyPrepend+"-";
+
+		if(!paramMap.containsKey(keyPrepend+"CollectionLength")){
+			return false;
+		}
+
+		int length = Integer.parseInt(paramMap.get(keyPrepend+"CollectionLength")[0]);
+
+		for(int i = 0; i < length; i++){
+			BaseObject newObject = (BaseObject) relatedAttribute.JavaType.newInstance();
+			if(!newObject.isValidForJsonMap(paramMap, keyPrepend)){
+				return false;
+			}
+			newObject.fromFlatJsonMap(paramMap, keyPrepend);
+			this.add(newObject);
+		}
+
+		return true;
 	}
 
 	public void printTable(String[] labels, String[] fieldsToPrint){

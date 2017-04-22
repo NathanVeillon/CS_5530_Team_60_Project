@@ -2,6 +2,8 @@ package main.java.models.base;
 
 import main.java.managers.ConnectionManager;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -16,6 +18,9 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 	private Map<Attribute, Attribute> AttributesToJoin = new HashMap<>();
 	private FilterCriteria TheQueryCriteria = new FilterCriteria(FilterCriteria.GroupAdhesive.AND);
 
+	private int PerPage = 0;
+	private int Page = 1;
+
 	private Class<DataObject> DataObjectClass;
 	private DataObject DataObjectInstance; // Used For Object Methods Like GetAttributes And GetTableName
 
@@ -26,6 +31,69 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		}catch (Exception e){
 			e.printStackTrace();
 		}
+	}
+
+
+	public BaseObjectQuery<DataObject> filterFromFlatJsonMap(Map<String, String[]> paramMap) throws Exception{
+		return filterFromFlatJsonMap(paramMap, "filter");
+	}
+
+	public BaseObjectQuery<DataObject> filterFromFlatJsonMap(Map<String, String[]> paramMap, String keyPrepend) throws Exception{
+		keyPrepend = (keyPrepend == null) ? "" : keyPrepend+"-";
+
+		if(!paramMap.containsKey(keyPrepend+"length")){
+			return this;
+		}
+
+		int length = Integer.parseInt(paramMap.get(keyPrepend+"length")[0]);
+
+		for(int i = 0; i < length; i++){
+			String filterParamKey = keyPrepend+i;
+			String fieldName = paramMap.get(filterParamKey+"-field")[0];
+			String valueString = paramMap.get(filterParamKey+"-value")[0];
+			FilterCriteria.Comparison comparison = FilterCriteria.Comparison.EQUAL;
+			if(paramMap.containsKey(filterParamKey+"-type")) {
+				comparison = FilterCriteria.Comparison.valueOf(paramMap.get(filterParamKey+"-type")[0]);
+			}
+
+			Attribute attr = DataObjectInstance.getRelatedAttr(fieldName);
+			Object value = null;
+			if (attr.JavaType.equals(Date.class)) {
+				value = Date.valueOf(valueString);
+			}
+
+			if (attr.JavaType.equals(String.class)) {
+				value = valueString;
+			}
+
+			if (attr.JavaType.equals(Boolean.class) ||
+					attr.JavaType.equals(boolean.class)) {
+				value = (valueString.equalsIgnoreCase("true") || valueString.equalsIgnoreCase("1"));
+			}
+
+			if (attr.JavaType.equals(int.class) ||
+					attr.JavaType.equals(Integer.class)){
+				value = Integer.parseInt(valueString);
+			}
+
+			if (attr.JavaType.equals(float.class) ||
+					attr.JavaType.equals(Float.class)){
+				value = Float.parseFloat(valueString);
+			}
+
+			if (attr.JavaType.equals(double.class) ||
+					attr.JavaType.equals(Double.class)){
+				value = Double.parseDouble(valueString);
+			}
+
+			if (attr.JavaType.equals(BigDecimal.class)){
+				value = new BigDecimal(valueString);
+			}
+
+			filterByField(fieldName, value, comparison);
+		}
+
+		return this;
 	}
 
 	public BaseObjectQuery<DataObject> filterByField(String fieldName, Object value) throws Exception {
@@ -73,9 +141,14 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		return this;
 	}
 
-	private String getQueryString() throws Exception{
+	public BaseObjectQuery<DataObject> paginate(int page, int perPage){
+		PerPage = perPage;
+		Page = page;
+		return this;
+	}
 
-		String queryString = "SELECT * FROM "+DataObjectInstance.getTableName();
+	private String generateFromQuerySection() throws Exception{
+		String fromQueryString = "FROM "+DataObjectInstance.getTableName();
 
 		if(AttributesToJoin.size() > 0){
 			StringBuilder joinTablesBuilder = new StringBuilder();
@@ -115,18 +188,23 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 			}
 
 
-			queryString += " JOIN ("+joinTablesBuilder.toString()+") ON ("+onAttributesBuilder.toString()+")";
+			fromQueryString += " JOIN ("+joinTablesBuilder.toString()+") ON ("+onAttributesBuilder.toString()+")";
 		}
 
-		if(TheQueryCriteria.getTotalFilterSize() > 0){
-			queryString += " WHERE "+TheQueryCriteria.getCriteriaString()+" ";
-		}
-
-		return queryString;
+		return fromQueryString;
 	}
 
 	public ObjectCollection find() throws Exception{
-		String queryString = getQueryString()+";";
+		String queryString = "SELECT * "+generateFromQuerySection();
+		if(TheQueryCriteria.getTotalFilterSize() > 0){
+			queryString += " WHERE "+TheQueryCriteria.getCriteriaString();
+		}
+
+		if(PerPage > 0){
+			int lastItemOnOtherPage = PerPage*(Page - 1);
+			queryString +=" LIMIT "+lastItemOnOtherPage+", "+PerPage;
+		}
+		queryString += ";";
 
 		PreparedStatement statement = ConnectionManager.prepareStatement(queryString);
 
@@ -134,17 +212,23 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		for (int i = 0; i < filterCriteriaSize; i++){
 			statement.setObject(i + 1, TheQueryCriteria.getFilterValue(i));
 		}
+
 		statement.execute();
 
 		ObjectCollection collection = populateCollectionFromObjectResult(statement.getResultSet());
+
 		statement.close();
 		return collection;
 	}
 
-
-
 	public DataObject findOne() throws Exception{
-		String queryString = getQueryString()+" LIMIT 1;";
+		String queryString = "SELECT * "+generateFromQuerySection();
+		if(TheQueryCriteria.getTotalFilterSize() > 0){
+			queryString += " WHERE "+TheQueryCriteria.getCriteriaString();
+		}
+
+		queryString +=" LIMIT 1";
+		queryString += ";";
 
 		PreparedStatement statement = ConnectionManager.prepareStatement(queryString);
 
@@ -159,6 +243,55 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		statement.close();
 
 		return (collection.size() == 0) ? null: (DataObject) collection.get(0);
+	}
+
+	public int count() throws Exception{
+
+		StringBuilder mainPksBuilder = new StringBuilder();
+		for(Attribute attr : DataObjectInstance.getAttributes()){
+			if(!attr.IsPrimaryKey){
+				continue;
+			}
+
+			if(mainPksBuilder.length() != 0){
+				mainPksBuilder.append(", ");
+			}
+
+			mainPksBuilder.append("`");
+			mainPksBuilder.append(DataObjectInstance.getTableName());
+			mainPksBuilder.append("`.`");
+			mainPksBuilder.append(attr.DatabaseName);
+			mainPksBuilder.append("`");
+
+		}
+
+		String queryString = "SELECT "+mainPksBuilder.toString()+", COUNT(*) as rowCount "+generateFromQuerySection();
+		if(TheQueryCriteria.getTotalFilterSize() > 0){
+			queryString += " WHERE "+TheQueryCriteria.getCriteriaString();
+		}
+
+		queryString += " GROUP BY ";
+		queryString += mainPksBuilder.toString();
+		queryString += ";";
+
+		System.out.println(queryString);
+
+		PreparedStatement statement = ConnectionManager.prepareStatement(queryString);
+
+		int filterCriteriaSize = TheQueryCriteria.getTotalFilterSize();
+		for (int i = 0; i < filterCriteriaSize; i++){
+			statement.setObject(i + 1, TheQueryCriteria.getFilterValue(i));
+		}
+
+		statement.execute();
+
+		ResultSet results = statement.getResultSet();
+		results.first();
+		int count = results.getInt("rowCount");
+
+		statement.close();
+
+		return count;
 	}
 
 	/**

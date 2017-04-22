@@ -1,2 +1,2 @@
-# CS_5530_Team_60_Project
-Airbnb-Like Project using Java to demonstrate understanding of databases
+# cs5530.team60project.com
+Airbnb-Like Project using Tomcat And JSP to demonstrate an understanding of databases.

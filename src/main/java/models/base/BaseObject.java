@@ -1,8 +1,11 @@
 package main.java.models.base;
 
+import jdk.nashorn.internal.runtime.JSONFunctions;
 import main.java.managers.ConnectionManager;
 
+import java.math.BigDecimal;
 import java.sql.*;
+import java.sql.Date;
 import java.util.*;
 
 public abstract class BaseObject implements Comparable{
@@ -135,6 +138,237 @@ public abstract class BaseObject implements Comparable{
 		}
 
 		return pkStr;
+	}
+
+	public String toJson(){
+		StringBuilder jsonBuilder = new StringBuilder();
+		jsonBuilder.append("{");
+		for (Attribute attr: getAttributes()){
+
+			Object val;
+			try {
+				val = getField(attr.JavaFieldName);
+			} catch (Exception e){
+				continue;
+			}
+
+			if(val == null){
+				continue;
+			}
+
+			if(jsonBuilder.length() > 1){
+				jsonBuilder.append(", ");
+			}
+
+			jsonBuilder.append("\"");
+			jsonBuilder.append(attr.JavaFieldName);
+			jsonBuilder.append("\": ");
+			if(attr.isForeignEntity()){
+				BaseObject relatedObject = (BaseObject) val;
+				jsonBuilder.append(relatedObject.toJson());
+				continue;
+			}
+
+			if(attr.JavaType.equals(Time.class)){
+				Time time = (Time) val;
+				jsonBuilder.append(time.getTime());
+				continue;
+			}
+
+			if(attr.JavaType.equals(Date.class)){
+				Date date = (Date) val;
+				jsonBuilder.append(date.getTime());
+				continue;
+			}
+
+			if(attr.JavaType.equals(String.class)){
+				String string = (String) val;
+				jsonBuilder.append(quoteForJson(string));
+				continue;
+			}
+
+			if(attr.JavaType.equals(Boolean.class)||
+				attr.JavaType.equals(boolean.class)){
+				boolean bool = (boolean) val;
+				jsonBuilder.append((bool) ? "true" : "false");
+				continue;
+			}
+
+			if(attr.JavaType.equals(int.class) ||
+				attr.JavaType.equals(Integer.class) ||
+				attr.JavaType.equals(float.class) ||
+				attr.JavaType.equals(Float.class) ||
+				attr.JavaType.equals(double.class) ||
+				attr.JavaType.equals(Double.class) ||
+				attr.JavaType.equals(BigDecimal.class)
+			){
+				jsonBuilder.append(val);
+				continue;
+			}
+		}
+
+		jsonBuilder.append("}");
+
+		return jsonBuilder.toString();
+	}
+
+	public boolean isValidForJsonMap(Map<String, String[]> paramMap, String keyPrepend){
+		keyPrepend = (keyPrepend == null) ? "" : keyPrepend+"-";
+
+		for(Attribute attr: getAttributes()){
+			String attributeParamKey = keyPrepend+attr.JavaFieldName;
+
+			if(attr.isForeignEntity()){
+				continue;
+			}
+
+			if(paramMap.containsKey(attributeParamKey)){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void fromFlatJsonMap(Map<String, String[]> paramMap) throws Exception {
+		fromFlatJsonMap(paramMap, null);
+	}
+
+	public void fromFlatJsonMap(Map<String, String[]> paramMap, String keyPrepend) throws Exception{
+		keyPrepend = (keyPrepend == null) ? "" : keyPrepend+"-";
+
+		for(Attribute attr: getAttributes()){
+			String attributeParamKey = keyPrepend+attr.JavaFieldName;
+
+			if(attr.isForeignEntity()){
+				switch (attr.ForeignEntityType){
+					case ONE_TO_ONE:
+					case MANY_TO_ONE:
+						BaseObject newInstance = (BaseObject) attr.JavaType.newInstance();
+						if(!newInstance.isValidForJsonMap(paramMap, attributeParamKey)){
+							break;
+						}
+						newInstance.fromFlatJsonMap(paramMap, attributeParamKey);
+						setField(attr.JavaFieldName, newInstance);
+						break;
+					case ONE_TO_MANY:
+						ObjectCollection newObjectCollection = new ObjectCollection();
+						boolean validCollection = newObjectCollection.fromFlatJsonMap(paramMap, attributeParamKey, attr);
+						if(!validCollection){
+							break;
+						}
+						setField(attr.JavaFieldName, newObjectCollection);
+						break;
+					default:
+						break;
+				}
+				continue;
+			}
+
+			if(!paramMap.containsKey(attributeParamKey)){
+				continue;
+			}
+
+			String val = paramMap.get(attributeParamKey)[0];
+
+
+			try {
+
+				if (attr.JavaType.equals(Date.class)) {
+					Date date = Date.valueOf(val);
+					this.setField(attr.JavaFieldName, date);
+					continue;
+				}
+
+				if (attr.JavaType.equals(String.class)) {
+					this.setField(attr.JavaFieldName, val);
+					continue;
+				}
+
+				if (attr.JavaType.equals(Boolean.class) ||
+						attr.JavaType.equals(boolean.class)) {
+					setField(attr.JavaFieldName, (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("1")));
+				}
+
+				if (attr.JavaType.equals(int.class) ||
+						attr.JavaType.equals(Integer.class)){
+					setField(attr.JavaFieldName, Integer.parseInt(val));
+					continue;
+				}
+
+				if (attr.JavaType.equals(float.class) ||
+						attr.JavaType.equals(Float.class)){
+					setField(attr.JavaFieldName, Float.parseFloat(val));
+					continue;
+				}
+
+				if (attr.JavaType.equals(double.class) ||
+						attr.JavaType.equals(double.class)){
+					setField(attr.JavaFieldName, Double.parseDouble(val));
+					continue;
+				}
+
+				if (attr.JavaType.equals(BigDecimal.class)){
+					setField(attr.JavaFieldName, new BigDecimal(val));
+					continue;
+				}
+			}catch (Exception e){
+				throw new Exception("Invalid Value ("+val+") For The Field ("+attr.JavaFieldName+")");
+			}
+		}
+	}
+
+	private static String quoteForJson(String string) {
+		if (string == null || string.length() == 0) {
+			return "\"\"";
+		}
+
+		char c = 0;
+		int len = string.length();
+		StringBuilder sb = new StringBuilder(len + 4);
+		String t;
+
+		sb.append('"');
+		for (int i = 0; i < len; i++) {
+			c = string.charAt(i);
+			switch (c) {
+				case '\\':
+				case '"':
+					sb.append('\\');
+					sb.append(c);
+					break;
+				case '/':
+					//                if (b == '<') {
+					sb.append('\\');
+					//                }
+					sb.append(c);
+					break;
+				case '\b':
+					sb.append("\\b");
+					break;
+				case '\t':
+					sb.append("\\t");
+					break;
+				case '\n':
+					sb.append("\\n");
+					break;
+				case '\f':
+					sb.append("\\f");
+					break;
+				case '\r':
+					sb.append("\\r");
+					break;
+				default:
+					if (c < ' ') {
+						t = "000" + Integer.toHexString(c);
+						sb.append("\\u" + t.substring(t.length() - 4));
+					} else {
+						sb.append(c);
+					}
+			}
+		}
+		sb.append('"');
+		return sb.toString();
 	}
 
 	public Object getField(String fieldName) throws NoSuchFieldException, IllegalAccessException {
