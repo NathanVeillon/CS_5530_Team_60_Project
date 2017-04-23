@@ -40,17 +40,13 @@ public class baseObjectExample {
 
 			c.save();
 
-			PreparedStatement stmnt = ConnectionManager.prepareStatement("SELECT * FROM "+ExampleObject.TableName+" WHERE name = ?;");
-			stmnt.setObject(1, "New Entry");
-
 			ExampleObjectQuery query = new ExampleObjectQuery();
-			ObjectCollection collection = query.getCollectionFromObjectResult(stmnt.executeQuery());
+			query.filterByField("Name", "New Entry");
+			ObjectCollection collection = query.find();
 
 			for(BaseObject object: collection){
 				System.out.println("Example Object, Id: "+object.getField("Id")+" | Name: "+ object.getField("Name"));
 			}
-
-			stmnt.close();
 
 			ConnectionManager.commit();
 		}

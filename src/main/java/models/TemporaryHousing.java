@@ -182,30 +182,20 @@ public class TemporaryHousing extends BaseObject {
 
 	public ObjectCollection getReservations() throws Exception {
 		if(this.Reservations == null && !IsCreating){
-			String query = "SELECT * FROM "+ Reservation.TableName+" " +
-					"JOIN ("+Period.TableName+", "+User.TableName+") " +
-					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod AND "+Reservation.TableName+".idUser = "+User.TableName+".idUser) " +
-					"WHERE "+Reservation.TableName+".idTH = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getId());
 			ReservationQuery query1 = new ReservationQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setReservations(collection);
+			query1.populateRelation("Period")
+					.populateRelation("User")
+					.filterByField("TemporaryHousingId", getId());
+			setReservations(query1.find());
 		}
 		return (ObjectCollection) this.getField("AvailablePeriods");
 	}
 
-	public ObjectCollection getCurrentUserReservations() throws Exception {
+	public ObjectCollection getReservationsForUserId(int userId) throws Exception {
 		if(this.Reservations == null && !IsCreating){
-			String query = "SELECT * FROM "+ Reservation.TableName+" " +
-					"JOIN ("+Period.TableName+") " +
-					"ON ("+Reservation.TableName+".idPeriod = "+Period.TableName+".idPeriod) " +
-					"WHERE "+Reservation.TableName+".idTH = ? AND "+Reservation.TableName+".idUser = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getId());
-			statement.setInt(2, UserManager.getCurrentUser().getId());
-			ReservationQuery query1 = new ReservationQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
+			ReservationQuery query = new ReservationQuery();
+			query.populateRelation("Period").filterByField("UserId", userId).filterByField("TemporaryHousingId", getId());
+			ObjectCollection collection = query.find();
 			setReservations(collection);
 		}
 		return (ObjectCollection) this.getField("AvailablePeriods");
@@ -220,12 +210,9 @@ public class TemporaryHousing extends BaseObject {
 
 	public ObjectCollection getAvailablePeriods() throws Exception {
 		if(this.AvailablePeriods == null && !IsCreating){
-			String query = "SELECT * FROM "+ AvailablePeriod.TableName+" JOIN ("+Period.TableName+") ON ("+AvailablePeriod.TableName+".idPeriod = "+Period.TableName+".idPeriod)  WHERE "+AvailablePeriod.TableName+".idTH = ? ORDER BY "+Period.TableName+".`from` ASC;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getId());
-			AvailablePeriodQuery query1 = new AvailablePeriodQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setAvailablePeriods(collection);
+			AvailablePeriodQuery query = new AvailablePeriodQuery();
+			query.populateRelation("Period").filterByField("TemporaryHousingId", getId());
+			setAvailablePeriods(query.find());
 		}
 		return (ObjectCollection) this.getField("AvailablePeriods");
 	}
@@ -240,19 +227,16 @@ public class TemporaryHousing extends BaseObject {
 
 	public User getOwner() throws Exception {
 		if(this.Owner == null && !IsCreating){
-			String query = "SELECT * FROM "+ Period.TableName+" WHERE idUser = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getOwnerId());
 			UserQuery query1 = new UserQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setOwner((User) collection.get(0));
-			statement.close();
+			query1.filterByField("Id", getOwnerId());
+			setOwner(query1.findOne());
 		}
 		return (User) this.getField("Owner");
 	}
 
 	public TemporaryHousing setOwner(User owner) throws Exception {
-		setField("OwnerId", owner.getId());
+		if(owner != null && !owner.IsCreating)
+			setField("OwnerId", owner.getId());
 		setField("Owner", owner);
 		return this;
 	}

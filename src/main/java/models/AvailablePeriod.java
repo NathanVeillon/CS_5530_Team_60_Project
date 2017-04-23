@@ -89,13 +89,9 @@ public class AvailablePeriod extends BaseObject {
 
 	public main.java.models.TemporaryHousing getTemporaryHousing() throws Exception {
 		if(this.TemporaryHousing == null && !IsCreating){
-			String query = "SELECT * FROM "+main.java.models.TemporaryHousing.TableName+" WHERE idTH = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getTemporaryHousingId());
-			TemporaryHousingQuery query1 = new TemporaryHousingQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setTemporaryHousing((TemporaryHousing) collection.get(0));
-			statement.close();
+			TemporaryHousingQuery query = new TemporaryHousingQuery();
+			query.filterByField("Id", getTemporaryHousingId());
+			setTemporaryHousing(query.findOne());
 		}
 		return (main.java.models.TemporaryHousing) this.getField("TemporaryHousing");
 	}
@@ -109,13 +105,9 @@ public class AvailablePeriod extends BaseObject {
 
 	public main.java.models.Period getPeriod() throws Exception {
 		if(this.Period == null && !IsCreating){
-			String query = "SELECT * FROM "+main.java.models.Period.TableName+" WHERE idPeriod = ?;";
-			PreparedStatement statement = ConnectionManager.prepareStatement(query);
-			statement.setInt(1, getPeriodId());
-			PeriodQuery query1 = new PeriodQuery();
-			ObjectCollection collection = query1.getCollectionFromObjectResult(statement.executeQuery());
-			setPeriod((Period) collection.get(0));
-			statement.close();
+			PeriodQuery query = new PeriodQuery();
+			query.filterByField("Id", getPeriodId());
+			setPeriod(query.findOne());
 		}
 		return (main.java.models.Period) this.getField("Period");
 	}

@@ -1,10 +1,10 @@
 <%@ page import="java.io.PrintWriter" %>
-<%@ page import="main.java.models.User" %>
 <%@ page import="main.java.managers.ConnectionManager" %>
-<%@ page import="main.java.models.TemporaryHousing" %>
-<%@ page import="main.java.models.TemporaryHousingQuery" %>
 <%@ page import="java.sql.ResultSet" %>
 <%@ page import="main.java.models.base.ListResult" %>
+<%@ page import="main.java.models.*" %>
+<%@ page import="main.java.models.base.ObjectCollection" %>
+<%@ page import="main.java.models.base.BaseObject" %>
 <%--
   Created by IntelliJ IDEA.
   User: Student Nathan
@@ -29,10 +29,11 @@
                 ConnectionManager.init("5530u60", "jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
                 int pageNum = Integer.parseInt(request.getParameter("page"));
                 int perPage = Integer.parseInt(request.getParameter("perPage"));
-                TemporaryHousingQuery query = new TemporaryHousingQuery();
-                query.sortFromFlatJsonMap(request.getParameterMap());
-                query.filterFromFlatJsonMap(request.getParameterMap());
-                query.paginate(pageNum, perPage);
+                AvailablePeriodQuery query = new AvailablePeriodQuery();
+                query.filterFromFlatJsonMap(request.getParameterMap())
+						.sortFromFlatJsonMap(request.getParameterMap())
+						.populateFromFlatJsonMap(request.getParameterMap())
+						.paginate(pageNum, perPage);
 
                 ListResult data = new ListResult();
                 data.Page = pageNum;
@@ -57,73 +58,57 @@
         case "POST":
             try {
                 ConnectionManager.init("5530u60", "jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
-                TemporaryHousing newHousing = new TemporaryHousing();
+                AvailablePeriod newAvailablePeriod = new AvailablePeriod();
 
                 try {
-                    newHousing.fromFlatJsonMap(request.getParameterMap());
+                    newAvailablePeriod.fromFlatJsonMap(request.getParameterMap());
                 } catch (Exception e) {
                     response.setStatus(400);
                     writer.append("Input Error : "+ e.getMessage());
                     return;
                 }
 
-                newHousing.setOwner((User)session.getAttribute("CurrentUser"));
+                TemporaryHousingQuery temporaryHousingQuery = new TemporaryHousingQuery();
+				temporaryHousingQuery.populateRelation("AvailablePeriods.Period").filterByField("Id", newAvailablePeriod.getTemporaryHousingId());
+
+                TemporaryHousing theTempHousing = temporaryHousingQuery.findOne();
+
+                if(theTempHousing == null){
+					response.setStatus(400);
+					writer.append("No Temporary Housing Found By Given Id.");
+					return;
+				}
+
+				if(!theTempHousing.getOwnerId().equals(((User)session.getAttribute("CurrentUser")).getId())){
+					response.setStatus(400);
+					writer.append("Cannot Update Housing You Don't Own.");
+					return;
+				}
+
+				ObjectCollection relatedPeriods = new ObjectCollection();
+                for(BaseObject object: theTempHousing.getAvailablePeriods()){
+					AvailablePeriod availablePeriod = (AvailablePeriod) object;
+					relatedPeriods.add(availablePeriod.getPeriod());
+				}
+
+                String errorMessage = newAvailablePeriod.getPeriod().validateAvailablePeriod(relatedPeriods);
+
+				if(errorMessage != null){
+					response.setStatus(400);
+					writer.append(errorMessage);
+					return;
+				}
 
                 ConnectionManager.startTransaction();
-                newHousing.save();
+
+				Period newPeriod = newAvailablePeriod.getPeriod();
+				newPeriod.save();
+				newAvailablePeriod.setPeriod(newPeriod);
+                newAvailablePeriod.save();
                 ConnectionManager.commit();
 
                 response.setStatus(201);
-                writer.append(newHousing.toJson());
-            } catch (Exception e) {
-                response.setStatus(400);
-                writer.append("Unexpected Error:");
-                e.printStackTrace(writer);
-                return;
-
-            } finally {
-                if (ConnectionManager.isInitialized()) {
-                    ConnectionManager.closeConnection();
-                }
-            }
-            break;
-        case "PUT":
-            try {
-                ConnectionManager.init("5530u60", "jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
-
-                TemporaryHousingQuery query = new TemporaryHousingQuery();
-                int idToUpdate = (request.getParameter("Id") == null) ? Integer.parseInt(request.getParameter("Id")) : 0;
-
-                query.filterByField("Id", idToUpdate);
-
-                TemporaryHousing housingToUpdate = query.findOne();
-
-                if(housingToUpdate == null){
-                	response.setStatus(404);
-                    writer.append("No Housing Found To Update.");
-                	return;
-                }
-
-                if(!housingToUpdate.OwnerId.equals(((User)session.getAttribute("CurrentUser")).getId())){
-                	response.setStatus(400);
-                    writer.append("Cannot Update Housing You Don't Own.");
-                	return;
-                }
-
-                try {
-                    housingToUpdate.fromFlatJsonMap(request.getParameterMap());
-                } catch (Exception e) {
-                    response.setStatus(400);
-                    writer.append("Input Error : "+ e.getMessage());
-                    return;
-                }
-
-                ConnectionManager.startTransaction();
-                housingToUpdate.save();
-                ConnectionManager.commit();
-
-                response.setStatus(200);
-                writer.append(housingToUpdate.toJson());
+                writer.append(newAvailablePeriod.toJson());
             } catch (Exception e) {
                 response.setStatus(400);
                 writer.append("Unexpected Error:");

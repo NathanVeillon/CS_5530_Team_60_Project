@@ -151,13 +151,9 @@ public class OwnedTemporaryHousingPage {
 	}
 
 	private static ObjectCollection getRelatedTemporaryHousing() throws Exception {
-		String stringQuery = "SELECT * FROM " +TemporaryHousing.TableName + " WHERE idOwner = ? ;";
-		PreparedStatement statement = ConnectionManager.prepareStatement(stringQuery);
-		statement.setInt(1, UserManager.getCurrentUser().getId());
 		TemporaryHousingQuery query = new TemporaryHousingQuery();
-		ObjectCollection collection = query.getCollectionFromObjectResult(statement.executeQuery());
-		statement.close();
-		return collection;
+		query.filterByField("OwnerId", UserManager.getCurrentUser().getId());
+		return query.find();
 	}
 
 	private static void printMenu() {

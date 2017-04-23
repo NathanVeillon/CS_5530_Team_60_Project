@@ -96,6 +96,8 @@ public class UserTrust extends BaseObject{
     }
 
     public UserTrust setSourceUser(User sourceUser) throws Exception {
+        if(sourceUser != null && !sourceUser.IsCreating && !sourceUser.IsDeleted)
+            setSourceUserId(sourceUser.getId());
         this.setField("SourceUser", sourceUser);
         return this;
     }
@@ -111,6 +113,8 @@ public class UserTrust extends BaseObject{
     }
 
     public UserTrust setTargetUser(User targetUser) throws Exception {
+        if(targetUser != null && !targetUser.IsCreating && !targetUser.IsDeleted)
+            setTargetUserId(targetUser.getId());
         this.setField("TargetUser", targetUser);
         return this;
     }

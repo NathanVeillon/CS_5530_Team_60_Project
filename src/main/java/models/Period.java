@@ -18,8 +18,8 @@ public class Period extends BaseObject {
 
 	public final static List<Attribute> Attributes = asList(
 			new Attribute("Id", Integer.class, "idPeriod", true),
-			new Attribute("To", Date.class, "to", false),
 			new Attribute("From", Date.class, "from", false),
+			new Attribute("To", Date.class, "to", false),
 
 			new Attribute("AvailablePeriods", AvailablePeriod.class, "Available", false, ONE_TO_MANY,
 					Arrays.asList(new AttributeRelationship("Id", "PeriodId"))),
@@ -179,29 +179,13 @@ public class Period extends BaseObject {
 		return validateBasicPeriod();
 	}
 
-	public String validateVisit(TemporaryHousing temporaryHousing){
+	public String validateVisit(TemporaryHousing temporaryHousing, int userId){
 		try {
-			ObjectCollection userReservations = temporaryHousing.getCurrentUserReservations();
-			boolean existsWithinTotally = false;
+			ObjectCollection userReservations = temporaryHousing.getReservationsForUserId(userId);
 
-			for (BaseObject object: userReservations){
-				Reservation reservation = (Reservation)object;
-				Period period = reservation.getPeriod();
-
-				existsWithinTotally = (this.getFrom().after(period.getFrom()) || this.getFrom().equals(period.getFrom()))
-						&& (this.getTo().before(period.getTo()) || this.getTo().equals(period.getTo()));
-				if(existsWithinTotally) {
-					break;
-				}
-
-			}
-
-			if(!existsWithinTotally)
-				return "Does Not Exist Within One Reservation";
+			return validateVisit(userReservations);
 		}catch (Exception e){
 			return "Error: "+e.getMessage();
 		}
-
-		return validateBasicPeriod();
 	}
 }

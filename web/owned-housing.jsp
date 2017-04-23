@@ -22,7 +22,7 @@
       </div>
       <div class="col-md-3 btn-column">
         <a class="btn btn-default" href="${pageContext.request.contextPath}/new-housing.jsp" role="button">Create</a>
-        <a class="btn btn-default disabled btnSingleItem" href="${pageContext.request.contextPath}/temporary-housing.jsp" role="button">Update</a>
+        <a class="btn btn-default disabled btnSingleItem" href="${pageContext.request.contextPath}/temporary-housing.jsp" role="button">Manage</a>
         <%--<button id="btnDeleteHousing" class="btn btn-default disabled btnSingleItem" >Delete</button>--%>
 
       </div>

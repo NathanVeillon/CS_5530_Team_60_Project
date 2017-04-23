@@ -75,12 +75,10 @@ public class CommandLineInterface {
 
 							String query = "SELECT idUser FROM Users WHERE login = ? AND password = ?;";
 							try {
-								PreparedStatement stmnt = ConnectionManager.prepareStatement(query);
-								stmnt.setString(1, enteredUsername);
-								stmnt.setString(2, enteredPassword);
 								UserQuery userQuery = new UserQuery();
-								ObjectCollection UserCollection = userQuery.getCollectionFromObjectResult(stmnt.executeQuery());
-								stmnt.close();
+								userQuery.filterByField("Login", enteredUsername)
+										.filterByField("Password", enteredPassword);
+								ObjectCollection UserCollection = userQuery.find();
 								if (UserCollection.size() == 0) {
 									System.out.println("Account does not exist");
 									break;

@@ -74,12 +74,12 @@
                 <jsp:doBody/>
             </div>
 
+            <div class="clearfix center-block"></div>
+
             <hr/>
-            <div class="row">
-                <footer class="footer" id="pagefooter">
-                    <p id="copyright">&copy; 1927, Future Bits When There Be Bits Inc.</p>
-                </footer>
-            </div>
+            <footer class="footer" id="pagefooter">
+                <p id="copyright">&copy; 1927, Future Bits When There Be Bits Inc.</p>
+            </footer>
         </div>
     </body>
 </html>
