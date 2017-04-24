@@ -13,6 +13,16 @@
 		Temporary Housing : <span class="infoName"></span>
   	</jsp:attribute>
 	<jsp:body>
+		<style>
+			#divFeedback > ul > li{
+				border-style: solid;
+				border-width: 1px;
+				border-color: #eee;
+				padding: 5px;
+				margin: 5px;
+			}
+		</style>
+
 		<ul class="nav nav-tabs" role="tablist">
 			<li role="presentation" class="active"><a href="#tabInfo" aria-controls="info" role="tab" data-toggle="tab">Info</a>
 			</li>
@@ -102,7 +112,15 @@ City, State 12345"></textarea>
 						</div>
 					</div>
 				</div>
-				<div id="divFeedback"></div>
+				<div class="clearfix center-block"></div>
+				<hr>
+				<h3 style="margin-top: 10px; margin-bottom: 10px">Feedback</h3>
+				<div class="row">
+					<div class="col-sm-offset-1 col-sm-11">
+						<div id="divFeedback"></div>
+						<button id="btnShowFeedbackDialog" class="btn btn-default" role="button">Add Feedback</button>
+					</div>
+				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tabAvailablePeriods">
 				<div class="container">
@@ -157,6 +175,38 @@ City, State 12345"></textarea>
 			</div><!-- /.modal-dialog -->
 		</div><!-- /.modal -->
 
+		<div class="modal fade" id="modalNewFeedback" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Feedback</h4>
+					</div>
+					<div class="modal-body">
+
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="inpScore">Score</label>
+									<input type="number" max="10" min="0" class="form-control" id="inpScore" placeholder="0-10">
+								</div>
+							</div>
+							<div class="col-xs-12">
+								<div class="form-group">
+									<label for="inpText">Message</label>
+									<textarea rows="3" class="form-control" id="inpText"></textarea>
+								</div>
+							</div>
+						</div>
+
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" id="btnCreateFeedback">Create</button>
+					</div>
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+
 		<script>
 			var currentUserId = ${pageContext.session.getAttribute("CurrentUser").getId()};
 			var dataTable = $("#tblAvailablePeriods");
@@ -164,6 +214,11 @@ City, State 12345"></textarea>
 
 			var theTemporaryHousingId;
 			var theTemporaryHousing;
+
+			var feedbackCollection;
+
+			var btnShowFeedbackDialog = $("#btnShowFeedbackDialog");
+			var btnCreateFeedback = $("#btnCreateFeedback");
 
 			var tabsInitialized;
 
@@ -176,7 +231,7 @@ City, State 12345"></textarea>
 
 			function getTheTemporaryHousing() {
 				theTemporaryHousingId = Db.Uotel.Util.UrlParam("Id");
-				var filters = [new Db.Uotel.Entities.Filter("Id", theTemporaryHousingId)]
+				var filters = [new Db.Uotel.Entities.Filter("Id", theTemporaryHousingId)];
 
 				Db.Uotel.Api.TemporaryHousing.getTemporaryHousing(1, 1, [], filters, []).setHandlers({
 					success: function (data) {
@@ -184,6 +239,9 @@ City, State 12345"></textarea>
 							alert("Temporary Housing Not Found");
 							window.location = "";
 						}
+
+
+						getTheFeedbackCollection();
 
 						theTemporaryHousing = data.collection.getItemAt(0);
 						initTabs();
@@ -193,8 +251,29 @@ City, State 12345"></textarea>
 						// Do nothing for now
 					}
 				});
+			}
 
+			function getTheFeedbackCollection() {
+				theTemporaryHousingId = Db.Uotel.Util.UrlParam("Id");
+				var filters = [new Db.Uotel.Entities.Filter("TemporaryHousingId", theTemporaryHousingId)];
 
+				Db.Uotel.Api.Feedback.getFeedback(1, 0, [], filters, ["User"]).setHandlers({
+					success: function (data) {
+						feedbackCollection = data.collection;
+						console.log(feedbackCollection);
+						var collectionRenderer = Db.Uotel.Renderers.FeedbackCollectionRender(feedbackCollection);
+						var container = $("#divFeedback");
+
+						btnShowFeedbackDialog.click(showAddFeedbackModal);
+						btnCreateFeedback.click(handleCreateFeedbackButtonClicked);
+
+						container.empty();
+						container.append(collectionRenderer.Container);
+					},
+					error: function (error) {
+						// Do nothing for now
+					}
+				});
 			}
 
 			function initTabs() {
@@ -384,6 +463,38 @@ City, State 12345"></textarea>
 
 			function showAddAvailablePeriodModal() {
 				$("#modalNewAvailablePeriod").modal();
+			}
+
+			function showAddFeedbackModal() {
+				$("#modalNewFeedback").modal();
+			}
+
+			function handleCreateFeedbackButtonClicked() {
+				var feedback = new Db.Uotel.Entities.Feedback();
+				feedback.TemporaryHousingId = theTemporaryHousingId;
+				feedback.UserId = currentUserId;
+				feedback.Score = $("#inpScore").val();
+				feedback.Text = $("#inpText").val();
+
+				var now = new Date();
+				feedback.Date = now.format("Y-m-d");
+
+				btnCreateFeedback.addClass("disabled");
+				btnCreateFeedback.text("Creating");
+				Db.Uotel.Api.Feedback.createFeedback(feedback).setHandlers({
+					success: function () {
+						getTheFeedbackCollection();
+						$("#modalNewFeedback").modal('hide');
+						$("#inpScore").val("");
+						$("#inpText").val("");
+						btnCreateFeedback.text("Created");
+					},
+					error: function (error) {
+						alert(error.message);
+						btnCreateFeedback.removeClass("disabled");
+						btnCreateFeedback.text("Create");
+					}
+				});
 			}
 
 			function currentUserIsOwner() {

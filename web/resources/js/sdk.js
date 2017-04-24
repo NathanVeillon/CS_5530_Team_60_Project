@@ -5,6 +5,39 @@ Db.Uotel.Entities = {};
 Db.Uotel.Api = {};
 Db.Uotel.Util = {};
 Db.Uotel.Remote = {};
+Db.Uotel.Renderers = {};
+
+Db.Uotel.Renderers.FeedbackCollectionRender = function (feedbackCollection) {
+	var self = this;
+
+	this.Container = $("<ul>").addClass("media-list");
+
+	feedbackCollection.each(function (feedback) {
+		var itemRenderer = new Db.Uotel.Renderers.FeedbackItemRender(feedback);
+		self.Container.append(itemRenderer.Container);
+	});
+
+	return this;
+};
+Db.Uotel.Renderers.FeedbackItemRender = function (feedback) {
+	var self = this;
+
+	this.Container = $("<li>").addClass("media");
+	this.Body = $("<div>").addClass("media-body").appendTo(self.Container);
+	this.Header = $("<h4>").addClass("media-heading").appendTo(self.Body);
+	this.Score = $("<span>").appendTo(self.Header);
+	self.Header.append(" - ");
+	this.UserName = $("<span>").appendTo(self.Header);
+
+	this.Score.text("("+feedback.Score+"/10)");
+	this.UserName.text(feedback.User.Name);
+
+	if(feedback.Text){
+		this.Body.append(feedback.Text)
+	}
+
+	return this;
+};
 
 Db.Uotel.Util.Date = {
 	weekDayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -1955,7 +1988,7 @@ Db.Uotel.Api.Feedback.getFeedback = function (page, perPage, sorters, filters, r
 	return promise;
 };
 
-Db.Uotel.Api.Visits.createFeedback = function (items) {
+Db.Uotel.Api.Feedback.createFeedback = function (items) {
 	// Create a promise the requester can listen on
 	var promise = new Db.Uotel.Util.Promise();
 
