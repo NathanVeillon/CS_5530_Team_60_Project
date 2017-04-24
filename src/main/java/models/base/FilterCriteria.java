@@ -7,7 +7,7 @@ import java.util.List;
  * Created by StudentNathan on 3/30/2017.
  */
 public class FilterCriteria {
-	public enum Comparison {EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN, GREATER_EQUAL, LESS_EQUAL}
+	public enum Comparison {EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN, GREATER_EQUAL, LESS_EQUAL, LIKE}
 	public enum GroupAdhesive {AND, OR}
 
 	private String FilterDatabaseName;
@@ -117,6 +117,8 @@ public class FilterCriteria {
 				return "<";
 			case LESS_EQUAL:
 				return "<=";
+			case LIKE:
+				return "LIKE";
 			default:
 				return "";
 		}

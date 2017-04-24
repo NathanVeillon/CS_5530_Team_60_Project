@@ -174,7 +174,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 			}
 		}
 
-		String tableAlias = (tableAliasBuilder.length() == 0) ? DataObjectInstance.getTableName() : tableAliasBuilder.toString();
+		String tableAlias = (tableAliasBuilder.length() == 0) ? DataObjectInstance.getTableName()+"1" : tableAliasBuilder.toString();
 
 		return  "`"+tableAlias+"`.`"+relatedAttr.DatabaseName+"`";
 	}
@@ -195,6 +195,9 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 	}
 
 	public BaseObjectQuery<DataObject> paginate(int page, int perPage){
+		if(perPage == 0){
+			return this;
+		}
 		PerPage = perPage;
 		Page = page;
 		return this;
@@ -234,6 +237,9 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		StringBuilder fromQueryStringBuilder = new StringBuilder();
 		fromQueryStringBuilder.append("FROM ");
 		fromQueryStringBuilder.append(DataObjectInstance.getTableName());
+		fromQueryStringBuilder.append(" `");
+		fromQueryStringBuilder.append(DataObjectInstance.getTableName());
+		fromQueryStringBuilder.append("1`");
 
 		if(AttributesToJoin.size() > 0){
 			for (String foreignObjectAlias: AttributesToJoin.navigableKeySet()) {
@@ -249,7 +255,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 				joinTablesBuilder.append(foreignInstanceToFilterOn.getTableName()).append(" `").append(foreignObjectAlias).append("`");
 
 				int lastIndexOfRelationship = foreignObjectAlias.lastIndexOf("@");
-				String localTableAlias = (lastIndexOfRelationship == -1) ? DataObjectInstance.getTableName() : foreignObjectAlias.substring(0, lastIndexOfRelationship);
+				String localTableAlias = (lastIndexOfRelationship == -1) ? DataObjectInstance.getTableName()+"1" : foreignObjectAlias.substring(0, lastIndexOfRelationship);
 				BaseObject localObjectToJoinOn = (lastIndexOfRelationship == -1) ? DataObjectInstance : getNewDatabaseInstanceFromAliasedTableName(localTableAlias);
 
 				for (AttributeRelationship attrMap: foreignAttribute.ForeignEntityMap) {
@@ -285,7 +291,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		return fromQueryStringBuilder.toString();
 	}
 
-	private String getAliasedColumnsToSelect() throws Exception{
+	protected String getAliasedColumnsToSelect() throws Exception{
 		StringBuilder columnsToQueryStringBuilder = new StringBuilder();
 
 		for(Attribute attr: DataObjectInstance.getAttributes()){
@@ -299,7 +305,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 
 			columnsToQueryStringBuilder.append("`")
 					.append(DataObjectInstance.getTableName())
-					.append("`.`")
+					.append("1`.`")
 					.append(attr.DatabaseName)
 					.append("` as `@")
 					.append(attr.JavaFieldName)
@@ -423,7 +429,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 
 			mainPksBuilder.append("`");
 			mainPksBuilder.append(DataObjectInstance.getTableName());
-			mainPksBuilder.append("`.`");
+			mainPksBuilder.append("1`.`");
 			mainPksBuilder.append(attr.DatabaseName);
 			mainPksBuilder.append("`");
 
@@ -472,7 +478,10 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 			for(int i = 1; i < colMax; i++){
 				String colLabel = md.getColumnLabel(i);
 				int lastAtSymbol = colLabel.lastIndexOf("@");
-				boolean isFromBaseTable = (lastAtSymbol == 0) || (md.getTableName(i).equals(DataObjectInstance.getTableName()) && lastAtSymbol == -1);
+				if(lastAtSymbol == -1){
+					continue;
+				}
+				boolean isFromBaseTable = (lastAtSymbol == 0);
 				String rowObjectKey = colLabel.substring(0, lastAtSymbol);
 				String rowObjectField = colLabel.substring(lastAtSymbol+1);
 

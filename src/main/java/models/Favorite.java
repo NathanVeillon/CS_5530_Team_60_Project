@@ -37,7 +37,7 @@ public class Favorite extends BaseObject{
         AttributeMap = Collections.unmodifiableMap(aMap);
     }
 
-    public final static String TableName = "feedback";
+    public final static String TableName = "Favorites";
 
     @Override
     public List<Attribute> getAttributes() {

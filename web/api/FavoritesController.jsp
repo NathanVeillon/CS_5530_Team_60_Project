@@ -1,10 +1,7 @@
 <%@ page import="java.io.PrintWriter" %>
-<%@ page import="main.java.models.User" %>
 <%@ page import="main.java.managers.ConnectionManager" %>
-<%@ page import="main.java.models.TemporaryHousing" %>
-<%@ page import="main.java.models.TemporaryHousingQuery" %>
-<%@ page import="java.sql.ResultSet" %>
 <%@ page import="main.java.models.base.ListResult" %>
+<%@ page import="main.java.models.*" %>
 <%--
   Created by IntelliJ IDEA.
   User: Student Nathan
@@ -29,9 +26,8 @@
                 ConnectionManager.init("5530u60", "jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
                 int pageNum = Integer.parseInt(request.getParameter("page"));
                 int perPage = Integer.parseInt(request.getParameter("perPage"));
-                TemporaryHousingQuery query = new TemporaryHousingQuery();
-                query.setCurrentUserId(((User)session.getAttribute("CurrentUser")).getId())
-                        .sortFromFlatJsonMap(request.getParameterMap())
+                FavoriteQuery query = new FavoriteQuery();
+                query.sortFromFlatJsonMap(request.getParameterMap())
                         .filterFromFlatJsonMap(request.getParameterMap())
                         .populateFromFlatJsonMap(request.getParameterMap())
                         .paginate(pageNum, perPage);
@@ -59,73 +55,50 @@
         case "POST":
             try {
                 ConnectionManager.init("5530u60", "jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
-                TemporaryHousing newHousing = new TemporaryHousing();
+                Favorite newFavorite = new Favorite();
 
                 try {
-                    newHousing.fromFlatJsonMap(request.getParameterMap());
+                    newFavorite.fromFlatJsonMap(request.getParameterMap());
                 } catch (Exception e) {
                     response.setStatus(400);
-                    writer.append("Input Error : "+ e.getMessage());
+                    writer.append("Input Error : "+ e.getMessage()+"\n");
+                    e.printStackTrace(writer);
                     return;
                 }
 
-                newHousing.setOwner((User)session.getAttribute("CurrentUser"));
+                UserQuery userQuery = new UserQuery();
+                TemporaryHousingQuery temporaryHousingQuery = new TemporaryHousingQuery();
+
+                User user = userQuery.filterByField("Id", newFavorite.getUserId()).findOne();
+                TemporaryHousing temporaryHousing = temporaryHousingQuery
+						.filterByField("Id", newFavorite.getTemporaryHousingId())
+						.findOne();
+
+                if(user == null){
+                    response.setStatus(400);
+                    writer.append("User Not Found");
+                    return;
+                }
+                if(temporaryHousing == null){
+                    response.setStatus(400);
+                    writer.append("Temporary Housing Not Found");
+                    return;
+                }
+
+                if(!user.equals(session.getAttribute("CurrentUser"))){
+                    response.setStatus(400);
+                    writer.append("You can only make a Reservation for Yourself");
+                    return;
+                }
+
+                writer.append(newFavorite.toJson());
 
                 ConnectionManager.startTransaction();
-                newHousing.save();
+                newFavorite.save();
                 ConnectionManager.commit();
 
                 response.setStatus(201);
-                writer.append(newHousing.toJson());
-            } catch (Exception e) {
-                response.setStatus(400);
-                writer.append("Unexpected Error:");
-                e.printStackTrace(writer);
-                return;
-
-            } finally {
-                if (ConnectionManager.isInitialized()) {
-                    ConnectionManager.closeConnection();
-                }
-            }
-            break;
-        case "PUT":
-            try {
-                ConnectionManager.init("5530u60", "jure0kku", "jdbc:mysql://georgia.eng.utah.edu", "5530db60");
-
-                TemporaryHousingQuery query = new TemporaryHousingQuery();
-                int idToUpdate = (request.getParameter("Id") == null) ? Integer.parseInt(request.getParameter("Id")) : 0;
-
-                query.filterByField("Id", idToUpdate);
-
-                TemporaryHousing housingToUpdate = query.findOne();
-
-                if(housingToUpdate == null){
-                	response.setStatus(404);
-                    writer.append("No Housing Found To Update.");
-                	return;
-                }
-
-                if(!housingToUpdate.OwnerId.equals(((User)session.getAttribute("CurrentUser")).getId())){
-                	response.setStatus(400);
-                    writer.append("Cannot Update Housing You Don't Own.");
-                	return;
-                }
-
-                try {
-                    housingToUpdate.fromFlatJsonMap(request.getParameterMap());
-                } catch (Exception e) {
-                    response.setStatus(400);
-                    writer.append("Input Error : "+ e.getMessage());
-                    return;
-                }
-
-                ConnectionManager.startTransaction();
-                housingToUpdate.save();
-                ConnectionManager.commit();
-
-                response.setStatus(200);
-                writer.append(housingToUpdate.toJson());
+                writer.append(newFavorite.toJson());
             } catch (Exception e) {
                 response.setStatus(400);
                 writer.append("Unexpected Error:");

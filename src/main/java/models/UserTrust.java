@@ -17,7 +17,7 @@ public class UserTrust extends BaseObject{
     public final static List<Attribute> Attributes = asList(
             new Attribute("SourceUserId", Integer.class, "idUser1", true),
             new Attribute("TargetUserId", Integer.class, "idUser2", true),
-            new Attribute("SourceTrustsTarget", Integer.class, "isTrusted", false),
+            new Attribute("SourceTrustsTarget", Boolean.class, "isTrusted", false),
 
             new Attribute("SourceUser", User.class, "User", false, MANY_TO_ONE,
                     Arrays.asList(new AttributeRelationship("SourceUserId", "Id"))),
@@ -34,7 +34,7 @@ public class UserTrust extends BaseObject{
         AttributeMap = Collections.unmodifiableMap(aMap);
     }
 
-    public final static String TableName = "Rate";
+    public final static String TableName = "Trust";
 
     @Override
     public List<Attribute> getAttributes() {
@@ -53,7 +53,7 @@ public class UserTrust extends BaseObject{
 
     public Integer SourceUserId;
     public Integer TargetUserId;
-    public Integer SourceTrustsTarget;
+    public Boolean SourceTrustsTarget;
 
     public User SourceUser;
     public User TargetUser;
@@ -76,11 +76,16 @@ public class UserTrust extends BaseObject{
         return this;
     }
 
-    public Integer getSourceTrustsTarget() throws Exception {
-        return (Integer) this.getField("SourceTrustsTarget");
+    public Boolean getSourceTrustsTarget() throws Exception {
+        return (Boolean) this.getField("SourceTrustsTarget");
     }
 
     public UserTrust setSourceTrustsTarget(Integer sourceTrustsTarget) throws Exception {
+        this.setField("SourceTrustsTarget", sourceTrustsTarget == 1);
+        return this;
+    }
+
+    public UserTrust setSourceTrustsTarget(Boolean sourceTrustsTarget) throws Exception {
         this.setField("SourceTrustsTarget", sourceTrustsTarget);
         return this;
     }

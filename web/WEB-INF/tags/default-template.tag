@@ -15,6 +15,7 @@
         <ul class="nav navbar-nav nav-pills header-links">
             <li role="presentation" id="hdrReservations" ><a href="/reservations.jsp">Reservations</a></li>
             <li role="presentation" id="hdrVisits" ><a href="/visits.jsp">Visits</a></li>
+            <li role="presentation" id="hdrHousingQuery"><a href="/housing-query.jsp">All Housing</a></li>
             <li role="presentation" id="hdrOwnedHousing"><a href="/owned-housing.jsp">Owned Housing</a></li>
         </ul>
 
