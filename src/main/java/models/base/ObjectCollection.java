@@ -17,9 +17,18 @@ public class ObjectCollection extends ArrayList<BaseObject> {
 		if(i == -1) {
 			return super.add(baseObject);
 		}else {
-			this.set(i, baseObject);
+			this.get(i).mergeIntoThis(baseObject);
 			return false;
 		}
+	}
+
+	public BaseObject getItemInCollection(BaseObject baseObject){
+		int i = this.indexOf(baseObject);
+		if(i == -1) {
+			return null;
+		}
+
+		return this.get(i);
 	}
 
 	public void save() throws Exception{
@@ -44,12 +53,14 @@ public class ObjectCollection extends ArrayList<BaseObject> {
 	}
 
 
-	public boolean fromFlatJsonMap(Map<String, String[]> paramMap, String keyPrepend, Attribute relatedAttribute) throws Exception{
-		if(!relatedAttribute.isForeignEntity() || relatedAttribute.ForeignEntityType != Attribute.ForeignRelationshipType.ONE_TO_MANY){
+	public boolean fromFlatJsonMap(Map<String, String[]> paramMap, String keyPrepend, Class objectType) throws Exception{
+		if(!BaseObject.class.isAssignableFrom(objectType)){
 			return false;
 		}
 
-		keyPrepend = (keyPrepend == null) ? "" : keyPrepend+"-";
+		System.out.println("ASDFASDFASDFASDAF");
+
+		keyPrepend = (keyPrepend == null || keyPrepend.length() == 0) ? "" : keyPrepend+"-";
 
 		if(!paramMap.containsKey(keyPrepend+"CollectionLength")){
 			return false;
@@ -58,11 +69,11 @@ public class ObjectCollection extends ArrayList<BaseObject> {
 		int length = Integer.parseInt(paramMap.get(keyPrepend+"CollectionLength")[0]);
 
 		for(int i = 0; i < length; i++){
-			BaseObject newObject = (BaseObject) relatedAttribute.JavaType.newInstance();
-			if(!newObject.isValidForJsonMap(paramMap, keyPrepend)){
+			BaseObject newObject = (BaseObject) objectType.newInstance();
+			if(!newObject.isValidForJsonMap(paramMap, keyPrepend+i)){
 				return false;
 			}
-			newObject.fromFlatJsonMap(paramMap, keyPrepend);
+			newObject.fromFlatJsonMap(paramMap, keyPrepend+i);
 			this.add(newObject);
 		}
 

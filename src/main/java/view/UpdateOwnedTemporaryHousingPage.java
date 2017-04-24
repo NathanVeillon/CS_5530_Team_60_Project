@@ -30,8 +30,8 @@ public class UpdateOwnedTemporaryHousingPage {
 	final static BufferedReader Input = CommandLineInterface.Input;
 	private final static String[] TableLabels = {"Id", "Name", "Category", "Address", "URL", "Phone-Number", "Built"};
 	private final static String[] TableFields = {"Id", "Name", "Category", "Address", "URL", "PhoneNumber", "YearBuilt"};
-	private final static String[] AvailableDatesTableLabels = {"Id", "Period.From", "Period.To", "Price Per Night"};
-	private final static String[] AvailableDatesTableFields = {"Period.Id", "Period.From", "Period.To", "PricePerNight"};
+	private final static String[] AvailablePeriodsTableLabels = {"Id", "Period.From", "Period.To", "Price Per Night"};
+	private final static String[] AvailablePeriodsTableFields = {"Period.Id", "Period.From", "Period.To", "PricePerNight"};
 
 	private static TemporaryHousing HousingToUpdate;
 	private static ObjectCollection AvailablePeriods;
@@ -126,7 +126,7 @@ public class UpdateOwnedTemporaryHousingPage {
 		ObjectCollection printOut = new ObjectCollection();
 		printOut.add(newAvailablePeriod);
 		System.out.println("New Available Period To Make");
-		printOut.printTable(AvailableDatesTableLabels, AvailableDatesTableFields);
+		printOut.printTable(AvailablePeriodsTableLabels, AvailablePeriodsTableFields);
 
 		if(!CommandLineInterface.confirm("Are You Sure You Want To Create This Available Period"))
 			return;
@@ -152,7 +152,7 @@ public class UpdateOwnedTemporaryHousingPage {
 		ObjectCollection printOut = new ObjectCollection();
 		printOut.add(periodToUpdate);
 		System.out.println("Available Period To Update");
-		printOut.printTable(AvailableDatesTableLabels, AvailableDatesTableFields);
+		printOut.printTable(AvailablePeriodsTableLabels, AvailablePeriodsTableFields);
 
 		if(!CommandLineInterface.confirm("Are You Sure You Want To Update This Available Period"))
 			return;
@@ -177,7 +177,7 @@ public class UpdateOwnedTemporaryHousingPage {
 		ObjectCollection printOut = new ObjectCollection();
 		printOut.add(availablePeriod);
 		System.out.println("Available Period To Update");
-		printOut.printTable(AvailableDatesTableLabels, AvailableDatesTableFields);
+		printOut.printTable(AvailablePeriodsTableLabels, AvailablePeriodsTableFields);
 
 		if(!CommandLineInterface.confirm("Are You Sure You Want To Delete This Available Period"))
 			return;
@@ -251,7 +251,7 @@ public class UpdateOwnedTemporaryHousingPage {
 					ObjectCollection printOut = new ObjectCollection();
 					printOut.add(availablePeriod);
 					System.out.println("Selected Date");
-					printOut.printTable(AvailableDatesTableLabels, AvailableDatesTableFields);
+					printOut.printTable(AvailablePeriodsTableLabels, AvailablePeriodsTableFields);
 					if(CommandLineInterface.confirm("Do You Want To Select This Avail. Period (Y/N)"))
 						return availablePeriod;
 					return null;
@@ -277,9 +277,9 @@ public class UpdateOwnedTemporaryHousingPage {
 		printSelectedTemporaryHousing();
 
 		System.out.println(UPDATE_TH_CODE + ". Update Main Housing Info");
-		System.out.println(ADD_AN_AVAILABLE_PERIOD_CODE + ". Add an Available Date");
-		System.out.println(UPDATE_AN_AVAILABLE_PERIOD_CODE + ". Edit an Available Date");
-		System.out.println(DELETE_AN_AVAILABLE_PERIOD_CODE + ". Delete an Available Date");
+		System.out.println(ADD_AN_AVAILABLE_PERIOD_CODE + ". Add an Available Period");
+		System.out.println(UPDATE_AN_AVAILABLE_PERIOD_CODE + ". Edit an Available Period");
+		System.out.println(DELETE_AN_AVAILABLE_PERIOD_CODE + ". Delete an Available Period");
 		System.out.println(EXIT_CODE + ". Back");
 		System.out.print("Please enter your choice:");
 	}
@@ -289,7 +289,7 @@ public class UpdateOwnedTemporaryHousingPage {
 		printOut.add(HousingToUpdate);
 		System.out.println("Selected Housing");
 		printOut.printTable(TableLabels, TableFields);
-		System.out.println("The Available Dates Housing");
-		AvailablePeriods.printTable(AvailableDatesTableLabels, AvailableDatesTableFields);
+		System.out.println("The Available Periods Housing");
+		AvailablePeriods.printTable(AvailablePeriodsTableLabels, AvailablePeriodsTableFields);
 	}
 }

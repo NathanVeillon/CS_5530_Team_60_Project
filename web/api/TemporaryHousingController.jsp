@@ -30,9 +30,10 @@
                 int pageNum = Integer.parseInt(request.getParameter("page"));
                 int perPage = Integer.parseInt(request.getParameter("perPage"));
                 TemporaryHousingQuery query = new TemporaryHousingQuery();
-                query.sortFromFlatJsonMap(request.getParameterMap());
-                query.filterFromFlatJsonMap(request.getParameterMap());
-                query.paginate(pageNum, perPage);
+                query.sortFromFlatJsonMap(request.getParameterMap())
+                        .filterFromFlatJsonMap(request.getParameterMap())
+                        .populateFromFlatJsonMap(request.getParameterMap())
+                        .paginate(pageNum, perPage);
 
                 ListResult data = new ListResult();
                 data.Page = pageNum;

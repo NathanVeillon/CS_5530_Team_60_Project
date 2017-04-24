@@ -16,7 +16,7 @@
 		<ul class="nav nav-tabs" role="tablist">
 			<li role="presentation" class="active"><a href="#tabInfo" aria-controls="info" role="tab" data-toggle="tab">Info</a>
 			</li>
-			<li role="presentation"><a id="tabLinkAvailableDates" href="#tabAvailableDates" aria-controls="profile" role="tab" data-toggle="tab">Available
+			<li role="presentation"><a id="tabLinkAvailablePeriods" href="#tabAvailablePeriods" aria-controls="profile" role="tab" data-toggle="tab">Available
 				Dates</a></li>
 		</ul>
 
@@ -104,28 +104,27 @@ City, State 12345"></textarea>
 				</div>
 				<div id="divFeedback"></div>
 			</div>
-			<div role="tabpanel" class="tab-pane" id="tabAvailableDates">
+			<div role="tabpanel" class="tab-pane" id="tabAvailablePeriods">
 				<div class="container">
 					<div class="col-md-9">
 						<div class="form-group">
-							<table id="tblAvailableDates" class="table table-striped table-bordered table-hover table-condensed">
+							<table id="tblAvailablePeriods" class="table table-striped table-bordered table-hover table-condensed">
 							</table>
-							<div id="pgrAvailableDates"></div>
 						</div>
 					</div>
 					<div class="divOwner col-md-3 btn-column">
-						<button class="btn btn-default" id="btnShowAddAvailableDate" role="button">Add Available Date Range</button>
+						<button class="btn btn-default" id="btnShowAddAvailablePeriod" role="button">Add Available Period</button>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="modal fade" id="modalNewAvailableDate" tabindex="-1" role="dialog">
+		<div class="modal fade" id="modalNewAvailablePeriod" tabindex="-1" role="dialog">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title">New Available Date</h4>
+						<h4 class="modal-title">New Available Period</h4>
 					</div>
 					<div class="modal-body">
 
@@ -152,7 +151,7 @@ City, State 12345"></textarea>
 
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-default" id="btnCreateAvailableDate">Create</button>
+						<button type="button" class="btn btn-default" id="btnCreateAvailablePeriod">Create</button>
 					</div>
 				</div><!-- /.modal-content -->
 			</div><!-- /.modal-dialog -->
@@ -160,7 +159,7 @@ City, State 12345"></textarea>
 
 		<script>
 			var currentUserId = ${pageContext.session.getAttribute("CurrentUser").getId()};
-			var dataTable = $("#tblAvailableDates");
+			var dataTable = $("#tblAvailablePeriods");
 			var table;
 
 			var theTemporaryHousingId;
@@ -179,7 +178,7 @@ City, State 12345"></textarea>
 				theTemporaryHousingId = Db.Uotel.Util.UrlParam("Id");
 				var filters = [new Db.Uotel.Entities.Filter("Id", theTemporaryHousingId)]
 
-				Db.Uotel.Api.TemporaryHousing.getTemporaryHousing(1, 1, [], filters).setHandlers({
+				Db.Uotel.Api.TemporaryHousing.getTemporaryHousing(1, 1, [], filters, []).setHandlers({
 					success: function (data) {
 						if (data.totalItemCount == 0) {
 							alert("Temporary Housing Not Found");
@@ -202,21 +201,21 @@ City, State 12345"></textarea>
 				initTabEventHandlers();
 				populateHousingInfo();
 				initInfoTab();
-				initAvailableDatesTab();
+				initAvailablePeriodsTab();
 			}
 
 			function initInfoTab() {
 			}
 
-			function initAvailableDatesTab() {
-				initAvailableDatesList()
+			function initAvailablePeriodsTab() {
+				initAvailablePeriodsList()
 			}
 
 
 			function initTabEventHandlers() {
 				$("#btnHousingSave").click(handleHousingSaveButtonClicked);
-				$("#btnShowAddAvailableDate").click(showAddAvailableDateModal);
-				$("#btnCreateAvailableDate").click(handleAvailableDateCreateButtonClicked);
+				$("#btnShowAddAvailablePeriod").click(showAddAvailablePeriodModal);
+				$("#btnCreateAvailablePeriod").click(handleAvailablePeriodCreateButtonClicked);
 			}
 
 			function populateHousingInfo() {
@@ -239,7 +238,7 @@ City, State 12345"></textarea>
 			}
 
 
-			function initAvailableDatesList() {
+			function initAvailablePeriodsList() {
 
 				table = dataTable.DataTable({
 					"sDom": 'tr' +
@@ -249,6 +248,7 @@ City, State 12345"></textarea>
 					'	<p>' +
 					'>',
 					"searching": false,
+					"order": [[ 0, "desc" ]],
 					"aLengthMenu": [[25, 50, 100, 1000], [25, 50, 100, 1000]],
 					"scrollY": "400px",
 					"processing": true,
@@ -261,7 +261,7 @@ City, State 12345"></textarea>
 						var perPage = data.length;
 						var draw = data.draw;
 
-						Db.Uotel.Api.AvailableDates.getAvailableDates(page, perPage, sorters, filters, relationsToPopulate, draw).setHandlers({
+						Db.Uotel.Api.AvailablePeriods.getAvailablePeriods(page, perPage, sorters, filters, relationsToPopulate, draw).setHandlers({
 							success: function (data) {
 								temporaryHousingCollection = data.collection;
 
@@ -280,10 +280,10 @@ City, State 12345"></textarea>
 				});
 
 
-				$("#tabLinkAvailableDates").on('show.bs.tab', function() {table.columns.adjust().draw();});
+				$("#tabLinkAvailablePeriods").on('show.bs.tab', function() {table.columns.adjust().draw();});
 			}
 
-			function resetAvailableDatesList() {
+			function resetAvailablePeriodsList() {
 				table.ajax.reload();
 			}
 
@@ -292,16 +292,14 @@ City, State 12345"></textarea>
 			}
 
 			function getDataTableColumnDefinitions() {
-				var availableDate = new Db.Uotel.Entities.AvailableDate();
+				var AvailablePeriod = new Db.Uotel.Entities.AvailablePeriod();
 				var columns = [
 					'Period.To',
 					"Period.From",
 					"PricePerNight"
 				];
 
-				console.log(availableDate.getColumnDefinitions(columns));
-
-				return availableDate.getColumnDefinitions(columns);
+				return AvailablePeriod.getColumnDefinitions(columns);
 			}
 
 			function handleRowClicked() {
@@ -348,28 +346,28 @@ City, State 12345"></textarea>
 				});
 			}
 
-			function getInputNewAvailableDateTempHousing() {
+			function getInputNewAvailablePeriodTempHousing() {
 				var newPeriod = new Db.Uotel.Entities.Period();
 				newPeriod.From = $("#inpPeriodFrom").val();
 				newPeriod.To = $("#inpPeriodTo").val();
 
-				var newAvailableDate = new Db.Uotel.Entities.AvailableDate();
-				newAvailableDate.TemporaryHousing = theTemporaryHousing;
-				newAvailableDate.TemporaryHousingId = theTemporaryHousing.Id;
-				newAvailableDate.Period = newPeriod;
-				newAvailableDate.PricePerNight = $("#inpPricePerNight").val();
+				var newAvailablePeriod = new Db.Uotel.Entities.AvailablePeriod();
+				newAvailablePeriod.TemporaryHousing = theTemporaryHousing;
+				newAvailablePeriod.TemporaryHousingId = theTemporaryHousing.Id;
+				newAvailablePeriod.Period = newPeriod;
+				newAvailablePeriod.PricePerNight = $("#inpPricePerNight").val();
 
-				return newAvailableDate;
+				return newAvailablePeriod;
 			}
 
-			function handleAvailableDateCreateButtonClicked() {
-				var saveBtn = $("#btnCreateAvailableDate");
+			function handleAvailablePeriodCreateButtonClicked() {
+				var saveBtn = $("#btnCreateAvailablePeriod");
 				saveBtn.addClass("disabled");
 				saveBtn.text("Creating");
-				Db.Uotel.Api.AvailableDates.createAvailableDate(getInputNewAvailableDateTempHousing()).setHandlers({
+				Db.Uotel.Api.AvailablePeriods.createAvailablePeriod(getInputNewAvailablePeriodTempHousing()).setHandlers({
 					success: function (updatedTempHousing) {
-						resetAvailableDatesList();
-						$("#modalNewAvailableDate").modal('hide');
+						resetAvailablePeriodsList();
+						$("#modalNewAvailablePeriod").modal('hide');
 						$("#inpPeriodFrom").empty();
 						$("#inpPeriodTo").empty();
 						$("#inpPricePerNight").empty();
@@ -384,8 +382,8 @@ City, State 12345"></textarea>
 				});
 			}
 
-			function showAddAvailableDateModal() {
-				$("#modalNewAvailableDate").modal();
+			function showAddAvailablePeriodModal() {
+				$("#modalNewAvailablePeriod").modal();
 			}
 
 			function currentUserIsOwner() {

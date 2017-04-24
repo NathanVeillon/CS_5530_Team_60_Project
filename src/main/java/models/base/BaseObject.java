@@ -52,6 +52,50 @@ public abstract class BaseObject implements Comparable{
 //		}
 //	}
 
+	public void mergeIntoThis(BaseObject that){
+		if(that == null || this.getClass() != that.getClass()){
+			return;
+		}
+
+		for(Attribute attr: getAttributes()){
+			if(!attr.isForeignEntity()){
+				continue;
+			}
+			Object thisO;
+			Object thatO;
+			try {
+				thisO = this.getField(attr.JavaFieldName);
+				thatO = that.getField(attr.JavaFieldName);
+
+
+				if(thisO == null && thatO == null){
+					continue;
+				}
+
+				if(thatO == null){
+					that.setField(attr.JavaFieldName, thisO);
+					continue;
+				}
+
+				if(thisO == null){
+					this.setField(attr.JavaFieldName, thatO);
+					continue;
+				}
+
+				if(attr.ForeignEntityType == Attribute.ForeignRelationshipType.ONE_TO_MANY){
+					ObjectCollection thisCollection = (ObjectCollection) thisO;
+					ObjectCollection thatCollection = (ObjectCollection) thatO;
+					for(BaseObject baseObject:  thatCollection){
+						thisCollection.add(baseObject);
+					}
+					that.setField(attr.JavaFieldName, thisCollection);
+				}
+			}catch (Exception e){
+				continue;
+			}
+		}
+	}
+
 	public boolean equals(Object o){
 		if(o == null)
 			return false;
@@ -63,10 +107,29 @@ public abstract class BaseObject implements Comparable{
 	}
 
 	public Attribute getRelatedAttr(String fieldName){
-		if(getAttributeMap().containsKey(fieldName)){
-			return getAttributeMap().get(fieldName);
+		int indexOfPoint = fieldName.indexOf(".");
+
+		String subField = null;
+		if(indexOfPoint != -1){
+			 subField = fieldName.substring(indexOfPoint+1);
+			fieldName = fieldName.substring(0, indexOfPoint);
 		}
-		return null;
+
+		if(!getAttributeMap().containsKey(fieldName)){
+			return null;
+		}
+
+		Attribute attr = getAttributeMap().get(fieldName);
+		if(subField == null){
+			return attr;
+		}
+
+		try {
+			BaseObject relatedObject = (BaseObject) attr.JavaType.newInstance();
+			return relatedObject.getRelatedAttr(subField);
+		}catch (Exception e){
+			return null;
+		}
 	}
 
 	public Attribute getRelatedAttrFromDbName(String databaseName){
@@ -164,8 +227,13 @@ public abstract class BaseObject implements Comparable{
 			jsonBuilder.append(attr.JavaFieldName);
 			jsonBuilder.append("\": ");
 			if(attr.isForeignEntity()){
-				BaseObject relatedObject = (BaseObject) val;
-				jsonBuilder.append(relatedObject.toJson());
+				if(attr.ForeignEntityType == Attribute.ForeignRelationshipType.ONE_TO_MANY){
+					ObjectCollection relatedObject = (ObjectCollection) val;
+					jsonBuilder.append(relatedObject.toJson());
+				}else {
+					BaseObject relatedObject = (BaseObject) val;
+					jsonBuilder.append(relatedObject.toJson());
+				}
 				continue;
 			}
 
@@ -253,7 +321,7 @@ public abstract class BaseObject implements Comparable{
 						break;
 					case ONE_TO_MANY:
 						ObjectCollection newObjectCollection = new ObjectCollection();
-						boolean validCollection = newObjectCollection.fromFlatJsonMap(paramMap, attributeParamKey, attr);
+						boolean validCollection = newObjectCollection.fromFlatJsonMap(paramMap, attributeParamKey, attr.JavaType);
 						if(!validCollection){
 							break;
 						}

@@ -213,6 +213,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 	}
 
 	private String getJoinTypeFromAliasedTableName(String aliasedTableName) throws Exception{
+		//ToDo:: Allow Specificity On Join Type When Populating Queries
 		String[] relationNames = aliasedTableName.split("@");
 		BaseObject objectInstance = DataObjectInstance;
 
@@ -522,6 +523,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 
 			item.IsCreating = false;
 			item.ModifiedAttributes.clear();
+
 
 			collection.add(item);
 		}

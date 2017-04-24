@@ -28,8 +28,8 @@ public class NewUserReservationsPage {
 	private final static String[] HousingTableFields = {"Id", "Name", "Category", "Address", "URL", "PhoneNumber", "YearBuilt"};
 
 
-	private final static String[] AvailableDatesTableLabels = {"Period.From", "Period.To", "Price Per Night"};
-	private final static String[] AvailableDatesTableFields = {"Period.From", "Period.To", "PricePerNight"};
+	private final static String[] AvailablePeriodsTableLabels = {"Period.From", "Period.To", "Price Per Night"};
+	private final static String[] AvailablePeriodsTableFields = {"Period.From", "Period.To", "PricePerNight"};
 
 	private static ObjectCollection NewReservationCollection;
 
@@ -135,7 +135,7 @@ public class NewUserReservationsPage {
 					TemporaryHousing temporaryHousing = (TemporaryHousing) object;
 					if(temporaryHousing.getId() == id){
 						System.out.println("Periods You Can Register In");
-						temporaryHousing.getAvailablePeriods().printTable(AvailableDatesTableLabels, AvailableDatesTableFields);
+						temporaryHousing.getAvailablePeriods().printTable(AvailablePeriodsTableLabels, AvailablePeriodsTableFields);
 						if(CommandLineInterface.confirm("Are You Sure Want To Create A Reservation Here? (Y/N)"))
 							return temporaryHousing;
 						break;

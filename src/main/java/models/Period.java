@@ -113,9 +113,10 @@ public class Period extends BaseObject {
 				if(!this.IsCreating && period.getId().equals(this.getId()))
 					continue;
 
-				boolean intersectionExists = this.getFrom().before(period.getTo()) && !(this.getTo().before(period.getFrom()));
-				if(intersectionExists)
+				boolean overlapExists = this.getFrom().before(period.getTo()) != (this.getTo().before(period.getFrom()));
+				if(overlapExists)
 					return "There Exists An Related Period That Contains Some Of The Same Days As This Period";
+
 			}
 		}catch (Exception e){
 			return "Error: "+e.getMessage();

@@ -17,7 +17,6 @@
       <div class="col-md-9">
         <div class="form-group">
           <table id="tblOwnedHousing" class="table table-striped table-bordered table-hover table-condensed"></table>
-          <div id="ownedHousingPager"></div>
         </div>
       </div>
       <div class="col-md-3 btn-column">
@@ -30,7 +29,6 @@
 
     <script>
 		var currentUserId = ${pageContext.session.getAttribute("CurrentUser").getId()};
-		var pagerId = "ownedHousingPager";
 		var dataTable = $("#tblOwnedHousing");
 		var table;
 
@@ -49,19 +47,18 @@
 				'	<p>' +
 				'>',
 				"searching": false,
-				"ordering": false,
 				"aLengthMenu": [[25, 50, 100, 1000], [25, 50, 100, 1000]],
 				"scrollY": "400px",
-				"processing": true,
 				"serverSide": true,
 				"select": 'single',
 				"ajax": function (data, callback, settings) {
 					var filters = [new Db.Uotel.Entities.Filter("OwnerId", currentUserId)];
+					var sorters = Db.Uotel.Util.parseSortersFromDataTableData(data);
 					var page = Db.Uotel.Util.calculatePage(data.start, data.length);
 					var perPage = data.length;
 					var draw = data.draw;
 
-					Db.Uotel.Api.TemporaryHousing.getTemporaryHousing(page, perPage, [], filters, draw).setHandlers({
+					Db.Uotel.Api.TemporaryHousing.getTemporaryHousing(page, perPage, sorters, filters, [], draw).setHandlers({
 						success: function(data) {
 							temporaryHousingCollection = data.collection;
 
@@ -126,12 +123,12 @@
 			var buttonLinksForSingleItems = $("a.btnSingleItem");
 			if(selectedTemporaryHousing == null){
 				buttonsForSingleItems.addClass("disabled");
+				return;
 			}
 			buttonsForSingleItems.removeClass("disabled");
 			buttonLinksForSingleItems.each(function () {
 				this.search = "?Id="+selectedTemporaryHousing.Id;
 			});
-			console.log(buttonLinksForSingleItems);
 		}
 
     </script>
