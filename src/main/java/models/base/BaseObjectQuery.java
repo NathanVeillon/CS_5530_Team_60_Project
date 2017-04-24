@@ -9,13 +9,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by StudentNathan on 3/19/2017.
  */
 public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 
-	private Map<String, Attribute> AttributesToJoin = new HashMap<>();
+	private TreeMap<String, Attribute> AttributesToJoin = new TreeMap<>();
 	private FilterCriteria TheQueryCriteria = new FilterCriteria(FilterCriteria.GroupAdhesive.AND);
 	private SorterCriteria TheSorterCriteria = new SorterCriteria();
 
@@ -235,7 +236,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 		fromQueryStringBuilder.append(DataObjectInstance.getTableName());
 
 		if(AttributesToJoin.size() > 0){
-			for (String foreignObjectAlias: AttributesToJoin.keySet()) {
+			for (String foreignObjectAlias: AttributesToJoin.navigableKeySet()) {
 				StringBuilder joinTablesBuilder = new StringBuilder();
 				StringBuilder onAttributesBuilder = new StringBuilder();
 
@@ -305,7 +306,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 					.append("`");
 		}
 
-		for (String foreignObjectAlias: AttributesToJoin.keySet()) {
+		for (String foreignObjectAlias: AttributesToJoin.navigableKeySet()) {
 			Attribute foreignAttribute = AttributesToJoin.get(foreignObjectAlias);
 			BaseObject foreignInstance = (BaseObject) foreignAttribute.JavaType.newInstance();
 
@@ -491,7 +492,7 @@ public abstract class BaseObjectQuery<DataObject extends BaseObject> {
 				rowObjects.put(rowObjectKey, aRowObject);
 			}
 
-			for(String rowObjectKey: AttributesToJoin.keySet()){
+			for(String rowObjectKey: AttributesToJoin.navigableKeySet()){
 				BaseObject aForeignRowObject = rowObjects.get(rowObjectKey);
 				if(aForeignRowObject == null){
 					continue;

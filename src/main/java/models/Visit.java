@@ -19,6 +19,7 @@ public class Visit extends BaseObject {
 			new Attribute("TemporaryHousingId", Integer.class, "idTH", true),
 			new Attribute("PeriodId", Integer.class, "idPeriod", true),
 			new Attribute("Cost", Integer.class, "cost", false),
+			new Attribute("PartySize", Integer.class, "partySize", false),
 
 			new Attribute("User", User.class, "User", false, MANY_TO_ONE,
 					Arrays.asList(new AttributeRelationship("UserId", "Id"))),
@@ -37,7 +38,7 @@ public class Visit extends BaseObject {
 		AttributeMap = Collections.unmodifiableMap(aMap);
 	}
 
-	public final static String TableName = "Reserve";
+	public final static String TableName = "Visit";
 
 	@Override
 	public List<Attribute> getAttributes() {
@@ -58,6 +59,7 @@ public class Visit extends BaseObject {
 	public Integer TemporaryHousingId;
 	public Integer PeriodId;
 	public Integer Cost;
+	public Integer PartySize;
 
 	public User User;
 	public TemporaryHousing TemporaryHousing;

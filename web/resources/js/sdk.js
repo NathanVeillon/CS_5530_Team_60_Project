@@ -1123,6 +1123,7 @@ Db.Uotel.Entities.TemporaryHousing = function (data) {
 
 	this.Owner = this.createProperty('Owner', null, 'Owner', Db.Uotel.Entities.User);
 	this.AvailablePeriods = this.createProperty('AvailablePeriods', null, 'Periods When Open', Db.Uotel.Collection.AvailablePeriodCollection);
+	this.Reservations = this.createProperty('Reservations', null, 'Reservations', Db.Uotel.Collection.ReservationCollection);
 
 	// Set Data with input
 	this.setData(data);
@@ -1436,6 +1437,18 @@ Db.Uotel.Entities.Reservation = function (data) {
 	};
 };
 
+Db.Uotel.Collection.ReservationCollection = function (data) {
+	Db.Uotel.Collection.BaseCollection.call(this);
+
+	this.primaryKey = ["TemporaryHousingId", "PeriodId", "UserId"];
+	this.itemType = Db.Uotel.Entities.Reservation;
+	var self = this;
+
+	this.setData(data);
+
+	return self;
+};
+
 Db.Uotel.Api.Reservations = {};
 
 Db.Uotel.Api.Reservations.getReservations = function (page, perPage, sorters, filters, relationsToPopulate,draw) {
@@ -1508,6 +1521,148 @@ Db.Uotel.Api.Reservations.createReservations = function (items) {
 	Db.Uotel.Remote.doPost('/api/BulkCreateReservationsController.jsp', items.toFlatHash()).setHandlers({
 		201: function (data) {
 			promise.handleResult('success', new Db.Uotel.Entities.Reservation(data));
+		},
+		_default: function (code, data) {
+			promise.handleResult('error', new Db.Uotel.Entities.Error(code, data));
+		}
+	});
+
+	return promise;
+};
+
+Db.Uotel.Entities.Visit = function (data) {
+	// Extend Base Entity
+	Db.Uotel.Entities.BaseEntity.call(this);
+
+	// List of properties
+	this.TemporaryHousingId = this.createProperty('TemporaryHousingId', null, 'Temp Housing Id');
+	this.UserId = this.createProperty('UserId', null, 'User Id');
+	this.PeriodId = this.createProperty('PeriodId', null, 'Period Id');
+	this.Cost = this.createProperty('Cost', null, 'Cost');
+	this.PartySize = this.createProperty('PartySize', null, 'Party Size');
+
+	this.TemporaryHousing = this.createProperty('TemporaryHousing', null, 'Temporary Housing', Db.Uotel.Entities.TemporaryHousing);
+	this.User = this.createProperty('User', null, 'User', Db.Uotel.Entities.User);
+	this.Period = this.createProperty('Period', null, 'Period', Db.Uotel.Entities.Period);
+
+	// Set Data with input
+	this.setData(data);
+
+	// Methods
+	var self = this;
+
+	this.getPk = function () {
+		return self.getCompositeKey(['Id']);
+	};
+
+	this.findAvailablePeriodIsContainedIn = function(AvailablePeriods){
+		if(self.Period === null || AvailablePeriods === null){
+			return null;
+		}
+
+		var AvailablePeriodContainedIn = null;
+
+		AvailablePeriods.each(function (AvailablePeriod) {
+			if(self.Period.isContainedIn(AvailablePeriod.Period)){
+				AvailablePeriodContainedIn = AvailablePeriod;
+				return true;
+			}
+		});
+
+		return null
+	};
+
+	this.calculateCost = function(AvailablePeriods){
+		if(Db.Uotel.Util.parseDate(self.Period.From) === null || Db.Uotel.Util.parseDate(self.Period.To)=== null){
+			return "Period Does Not Have Valid Date Range";
+		}
+
+		var timeDiff = Math.abs(Db.Uotel.Util.parseDate(self.Period.To).getTime() - Db.Uotel.Util.parseDate(self.Period.From).getTime());
+		var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+		var AvailablePeriod = self.findAvailablePeriodIsContainedIn(AvailablePeriods);
+
+		if(AvailablePeriod === null){
+			return "Not Within An Available Period For This Period";
+		}
+
+		return diffDays*AvailablePeriod.PricePerNight;
+
+	};
+};
+
+Db.Uotel.Api.Visits = {};
+
+Db.Uotel.Api.Visits.getVisits = function (page, perPage, sorters, filters, relationsToPopulate,draw) {
+	// Create a promise the requester can listen on
+	var promise = new Db.Uotel.Util.Promise();
+
+	var draw = Db.Uotel.Util.parseDraw(draw);
+
+	var query = {
+		page: (page || page === 0) ? page : 1,
+		perPage: (perPage || perPage === 0) ? perPage : 25,
+		"filter-length": (filters) ? filters.length : 0,
+		"sorter-length": (sorters) ? sorters.length : 0,
+		"populate-length": (relationsToPopulate) ? relationsToPopulate.length : 0
+	};
+
+	for (var i = 0; i < sorters.length; i += 1) {
+		if (Db.Uotel.Util.IsInstanceOf(sorters[i], Db.Uotel.Entities.Sorter)) {
+			sorters[i].toFlatHash(null, null, null, "sorter-"+i, query);
+		}
+	}
+
+	for (var i = 0; i < filters.length; i += 1) {
+		if (Db.Uotel.Util.IsInstanceOf(filters[i], Db.Uotel.Entities.Filter)) {
+			filters[i].toFlatHash(null, null, null, "filter-"+i, query);
+		}
+	}
+
+	for (var i = 0; i < relationsToPopulate.length; i += 1) {
+		query["populate-"+i] = relationsToPopulate[i];
+	}
+
+
+	// Send Call
+	Db.Uotel.Remote.doGet('/api/VisitsController.jsp', query).setHandlers({
+		200: function (data) {
+			console.log(data);
+			var collection = new Db.Uotel.Collection.BaseCollection();
+
+			for (var index in data.results) {
+				collection.addItem(new Db.Uotel.Entities.Visit(data.results[index]))
+			}
+
+			var listResult = new Db.Uotel.Entities.ListResult();
+			listResult.draw = draw + 1;
+			listResult.collection = collection;
+			listResult.perPage = data.perPage;
+			listResult.totalItemCount = data.count;
+			listResult.page = data.page;
+
+			promise.handleResult('success', listResult);
+		},
+		_default: function (code, data) {
+
+			console.log(data);
+			promise.handleResult('error', new Db.Uotel.Entities.Error(code, data));
+		}
+	});
+
+	return promise;
+};
+
+Db.Uotel.Api.Visits.createVisits = function (items) {
+	// Create a promise the requester can listen on
+	var promise = new Db.Uotel.Util.Promise();
+
+	console.log(items.toFlatHash());
+
+	// Send Call
+	Db.Uotel.Remote.doPost('/api/BulkCreateVisitsController.jsp', items.toFlatHash()).setHandlers({
+		201: function (data) {
+			promise.handleResult('success', new Db.Uotel.Entities.Visit(data));
 		},
 		_default: function (code, data) {
 			promise.handleResult('error', new Db.Uotel.Entities.Error(code, data));
